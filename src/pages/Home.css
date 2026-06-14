@@ -1,0 +1,37 @@
+.gate { min-height: calc(100vh - 56px); display: flex; align-items: center; justify-content: center; padding: 2rem; background: #f5f6f8; }
+.gate-box { text-align: center; max-width: 380px; }
+.gate-icon { font-size: 48px; margin-bottom: 1rem; }
+.gate-box h2 { font-size: 20px; font-weight: 700; color: #0a1628; margin: 0 0 8px; }
+.gate-box p { font-size: 14px; color: #6b7280; margin: 0 0 1.5rem; line-height: 1.6; }
+.gate-btn { background: #378ADD; color: #fff; border: none; border-radius: 10px; padding: 12px 32px; font-size: 15px; font-weight: 500; cursor: pointer; display: block; width: 100%; margin-bottom: 12px; }
+.gate-contact { display: block; font-size: 14px; color: #378ADD; text-decoration: none; font-weight: 500; }
+.hero { background: linear-gradient(135deg, #0a1628 0%, #1a2f4e 60%, #0f2040 100%); padding: 3rem 1.5rem; text-align: center; position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; top: -80px; right: -80px; width: 280px; height: 280px; border-radius: 50%; background: rgba(55,138,221,0.1); pointer-events: none; }
+.hero-inner { position: relative; z-index: 1; max-width: 500px; margin: 0 auto; }
+.hero-eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.1em; color: #5ba8f5; text-transform: uppercase; margin: 0 0 1rem; }
+.hero h1 { font-size: 2rem; font-weight: 700; color: #fff; line-height: 1.25; margin: 0 0 0.75rem; }
+.hero h1 span { color: #5ba8f5; }
+.hero-sub { font-size: 14px; color: #7a9bbf; margin: 0 0 1.75rem; }
+.hero-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.hero-btn-primary, .hero-btn-outline { display: inline-flex; align-items: center; gap: 6px; padding: 11px 22px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; text-decoration: none; border: none; }
+.hero-btn-primary { background: #378ADD; color: #fff; }
+.hero-btn-outline { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
+.filter-bar { padding: 1.25rem 1.5rem 0.75rem; background: #fff; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; position: sticky; top: 56px; z-index: 50; }
+.section-label { font-size: 13px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin: 0; }
+.filter-tabs { display: flex; gap: 6px; }
+.filter-tabs button { background: #f3f4f6; border: none; border-radius: 7px; padding: 6px 14px; font-size: 13px; color: #6b7280; cursor: pointer; font-weight: 500; transition: all 0.15s; }
+.filter-tabs button.active { background: #378ADD; color: #fff; }
+.products-section { padding: 1.5rem; background: #f5f6f8; min-height: 300px; }
+.products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
+.loading-state, .empty-state { text-align: center; padding: 4rem 1rem; color: #9ca3af; font-size: 15px; }
+.contact-section { padding: 1.5rem; background: #f0f4ff; }
+.contact-card { background: #fff; border-radius: 12px; padding: 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; border: 1px solid #e0e7ff; max-width: 600px; margin: 0 auto; }
+.contact-info { display: flex; align-items: center; gap: 12px; }
+.contact-avatar { width: 44px; height: 44px; border-radius: 50%; background: #B5D4F4; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: #0C447C; flex-shrink: 0; }
+.contact-name { font-size: 15px; font-weight: 600; color: #0a1628; margin: 0; }
+.contact-phone { font-size: 13px; color: #6b7280; margin: 2px 0 0; }
+.contact-btns { display: flex; gap: 8px; }
+.btn-call, .btn-zalo { display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; text-decoration: none; border: none; cursor: pointer; }
+.btn-call { background: #0a1628; color: #fff; }
+.btn-zalo { background: #0068FF; color: #fff; }
+.footer { text-align: center; padding: 1.25rem; font-size: 12px; color: #9ca3af; background: #f5f6f8; }
