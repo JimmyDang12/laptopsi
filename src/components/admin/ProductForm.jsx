@@ -9,6 +9,7 @@ export default function ProductForm({ product, onClose, onSaved }) {
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [extraImages, setExtraImages] = useState([])
 
   const isEdit = !!product
 
@@ -17,32 +18,59 @@ export default function ProductForm({ product, onClose, onSaved }) {
   }
 
   async function handleUpload(e) {
-    const file = e.target.files[0]
-    if (!file) return
+    const files = Array.from(e.target.files)
+    if (!files.length) return
     setUploading(true)
-    const ext = file.name.split('.').pop()
-    const fileName = `${Date.now()}.${ext}`
-    const { error } = await supabase.storage.from('product-images').upload(fileName, file)
-    if (error) { setError('Upload ảnh thất bại: ' + error.message); setUploading(false); return }
-    const { data: { publicUrl } } = supabase.storage.from('product-images').getPublicUrl(fileName)
-    setForm(f => ({ ...f, image_url: publicUrl }))
+    const urls = []
+    for (const file of files) {
+      const ext = file.name.split('.').pop()
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+      const { error } = await supabase.storage.from('product-images').upload(fileName, file)
+      if (error) { setError('Upload thất bại: ' + error.message); continue }
+      const { data: { publicUrl } } = supabase.storage.from('product-images').getPublicUrl(fileName)
+      urls.push(publicUrl)
+    }
+    if (urls.length > 0) {
+      if (!form.image_url) {
+        setForm(f => ({ ...f, image_url: urls[0] }))
+        setExtraImages(prev => [...prev, ...urls.slice(1)])
+      } else {
+        setExtraImages(prev => [...prev, ...urls])
+      }
+    }
     setUploading(false)
+  }
+
+  function removeExtraImage(url) {
+    setExtraImages(prev => prev.filter(u => u !== url))
   }
 
   async function handleSubmit(e) {
     e.preventDefault()
     setSaving(true); setError('')
     const payload = { ...form, 'Giá bán': form['Giá bán'] ? Number(form['Giá bán']) : null }
+    let productId = product?.id
+
     if (isEdit) {
       const { error } = await supabase.from('products').update(payload).eq('id', product.id)
       if (error) { setError(error.message); setSaving(false); return }
     } else {
-      const { error } = await supabase.from('products').insert([payload])
+      const { data, error } = await supabase.from('products').insert([payload]).select().single()
       if (error) { setError(error.message); setSaving(false); return }
+      productId = data.id
     }
+
+    // Lưu ảnh phụ vào product_images
+    if (extraImages.length > 0) {
+      const imageRows = extraImages.map((url, i) => ({ product_id: productId, image_url: url, order: i + 1 }))
+      await supabase.from('product_images').insert(imageRows)
+    }
+
     setSaving(false)
     onSaved()
   }
+
+  const allPreviews = [form.image_url, ...extraImages].filter(Boolean)
 
   return (
     <div className="form-overlay" onClick={onClose}>
@@ -53,20 +81,25 @@ export default function ProductForm({ product, onClose, onSaved }) {
         </div>
 
         <form onSubmit={handleSubmit} className="form-body">
-          {/* Ảnh */}
           <div className="form-section">
-            <label className="form-label">Ảnh sản phẩm</label>
-            <div className="image-upload-area">
-              {form.image_url && <img src={form.image_url} alt="" className="preview-img" />}
-              <div className="upload-controls">
-                <label className="btn-upload">
-                  {uploading ? 'Đang upload...' : '📁 Chọn ảnh'}
-                  <input type="file" accept="image/*" onChange={handleUpload} disabled={uploading} style={{ display: 'none' }} />
-                </label>
-                <span className="upload-or">hoặc</span>
-                <input className="form-input" placeholder="Dán link ảnh URL" name="image_url" value={form.image_url} onChange={handleChange} />
+            <label className="form-label">Ảnh sản phẩm (chọn nhiều ảnh cùng lúc)</label>
+            <label className="btn-upload">
+              {uploading ? '⏳ Đang upload...' : '📁 Chọn ảnh (có thể chọn nhiều)'}
+              <input type="file" accept="image/*" multiple onChange={handleUpload} disabled={uploading} style={{ display: 'none' }} />
+            </label>
+            {allPreviews.length > 0 && (
+              <div className="preview-list">
+                {allPreviews.map((url, i) => (
+                  <div key={url} className="preview-item">
+                    <img src={url} alt="" />
+                    {i === 0 && <span className="preview-main">Ảnh chính</span>}
+                    {i > 0 && <button type="button" className="preview-remove" onClick={() => removeExtraImage(url)}>✕</button>}
+                  </div>
+                ))}
               </div>
-            </div>
+            )}
+            <div className="upload-or">hoặc dán link URL</div>
+            <input className="form-input" placeholder="https://..." name="image_url" value={form.image_url} onChange={handleChange} />
           </div>
 
           <div className="form-grid">
@@ -104,7 +137,7 @@ export default function ProductForm({ product, onClose, onSaved }) {
             </div>
             <div className="form-group">
               <label className="form-label">Ngoại hình</label>
-              <input className="form-input" name="Ngoại hình" value={form['Ngoại hình']} onChange={handleChange} placeholder="Like New 99%, 98%..." />
+              <input className="form-input" name="Ngoại hình" value={form['Ngoại hình']} onChange={handleChange} placeholder="Like New 99%..." />
             </div>
             <div className="form-group full">
               <label className="form-label">Ghi chú</label>
