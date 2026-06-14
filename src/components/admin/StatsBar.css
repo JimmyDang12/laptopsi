@@ -1,0 +1,5 @@
+.stats-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; padding: 1.5rem; background: #fff; border-bottom: 1px solid #e5e7eb; }
+@media (max-width: 600px) { .stats-bar { grid-template-columns: repeat(2, 1fr); } }
+.stat-card { text-align: center; padding: 1rem; background: #f9fafb; border-radius: 10px; }
+.stat-value { font-size: 28px; font-weight: 700; margin: 0 0 4px; }
+.stat-label { font-size: 13px; color: #6b7280; margin: 0; }

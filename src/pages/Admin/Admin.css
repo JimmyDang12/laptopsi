@@ -1,0 +1,48 @@
+.admin { min-height: 100vh; background: #f5f6f8; }
+
+.admin-loading {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+}
+.spinner { width: 36px; height: 36px; border: 3px solid #e5e7eb; border-top-color: #378ADD; border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.admin-denied { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
+.admin-denied h2 { font-size: 22px; }
+.admin-denied a { color: #378ADD; text-decoration: none; font-size: 14px; }
+
+.admin-header {
+  background: #0a1628;
+  padding: 0 1.5rem;
+  height: 60px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.admin-brand { display: flex; align-items: center; gap: 12px; }
+.admin-brand span { font-size: 22px; }
+.admin-brand h1 { font-size: 16px; font-weight: 700; color: #fff; margin: 0; }
+.admin-brand p { font-size: 12px; color: #7a9bbf; margin: 0; }
+.btn-view-site { color: #7a9bbf; text-decoration: none; font-size: 13px; }
+.btn-view-site:hover { color: #fff; }
+
+.admin-tabs {
+  display: flex; gap: 0;
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0 1.5rem;
+}
+.admin-tabs button {
+  background: none; border: none; border-bottom: 2px solid transparent;
+  padding: 14px 20px; font-size: 14px; font-weight: 500; color: #6b7280;
+  cursor: pointer; margin-bottom: -1px;
+}
+.admin-tabs button.active { color: #378ADD; border-bottom-color: #378ADD; }
+
+.admin-content { padding: 1.5rem; max-width: 1200px; margin: 0 auto; }
+
+.admin-toolbar { margin-bottom: 1rem; }
+.btn-add {
+  background: #378ADD; color: #fff; border: none; border-radius: 8px;
+  padding: 10px 20px; font-size: 14px; font-weight: 500; cursor: pointer;
+}
+.btn-add:hover { background: #2a6bb5; }
+
+.admin-loading-inline { padding: 3rem; text-align: center; color: #9ca3af; }

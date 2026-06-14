@@ -3,12 +3,28 @@ import { AuthProvider, useAuth } from './context/AuthContext'
 import Navbar from './components/Navbar'
 import AuthModal from './components/AuthModal'
 import Home from './pages/Home'
+import Admin from './pages/Admin/index'
 import './App.css'
 
 function AppContent() {
   const [showAuth, setShowAuth] = useState(false)
   const { loading } = useAuth()
-  if (loading) return <div className="app-loading"><div className="spinner"></div></div>
+
+  // Simple routing dựa vào pathname
+  const isAdmin = window.location.pathname === '/admin'
+
+  if (loading) {
+    return (
+      <div className="app-loading">
+        <div className="spinner"></div>
+      </div>
+    )
+  }
+
+  if (isAdmin) {
+    return <Admin />
+  }
+
   return (
     <div className="app">
       <Navbar onAuthClick={() => setShowAuth(true)} />
@@ -19,5 +35,9 @@ function AppContent() {
 }
 
 export default function App() {
-  return <AuthProvider><AppContent /></AuthProvider>
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  )
 }

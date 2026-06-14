@@ -9,24 +9,40 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      if (session?.user) checkAdmin(session.user.id)
-      else setLoading(false)
+    async function init() {
+      const { data: { session } } = await supabase.auth.getSession()
+      const currentUser = session?.user ?? null
+      setUser(currentUser)
+      if (currentUser) {
+        const { data } = await supabase
+          .from('admin_users')
+          .select('id')
+          .eq('user_id', currentUser.id)
+          .maybeSingle()
+        setIsAdmin(!!data)
+      }
+      setLoading(false)
+    }
+    init()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const currentUser = session?.user ?? null
+      setUser(currentUser)
+      if (currentUser) {
+        const { data } = await supabase
+          .from('admin_users')
+          .select('id')
+          .eq('user_id', currentUser.id)
+          .maybeSingle()
+        setIsAdmin(!!data)
+      } else {
+        setIsAdmin(false)
+      }
+      setLoading(false)
     })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-      if (session?.user) checkAdmin(session.user.id)
-      else { setIsAdmin(false); setLoading(false) }
-    })
+
     return () => subscription.unsubscribe()
   }, [])
-
-  async function checkAdmin(userId) {
-    const { data } = await supabase.from('admin_users').select('id').eq('user_id', userId).single()
-    setIsAdmin(!!data)
-    setLoading(false)
-  }
 
   return (
     <AuthContext.Provider value={{ user, isAdmin, loading }}>

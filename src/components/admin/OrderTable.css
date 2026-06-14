@@ -1,0 +1,16 @@
+.order-empty { text-align: center; padding: 4rem; color: #9ca3af; background: #fff; border-radius: 12px; border: 1px solid #e5e7eb; }
+.table-wrap { overflow-x: auto; background: #fff; border-radius: 12px; border: 1px solid #e5e7eb; }
+.order-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.order-table th { background: #f9fafb; padding: 11px 14px; text-align: left; font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #e5e7eb; white-space: nowrap; }
+.order-table td { padding: 11px 14px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+.order-table tr:last-child td { border-bottom: none; }
+.order-table tr:hover td { background: #fafafa; }
+.order-id { font-weight: 700; color: #6b7280; }
+.order-product { font-weight: 600; color: #0a1628; max-width: 160px; }
+.order-customer { font-weight: 500; }
+.order-phone { color: #378ADD; text-decoration: none; font-weight: 500; }
+.order-note { color: #6b7280; max-width: 150px; }
+.order-date { color: #6b7280; white-space: nowrap; font-size: 12px; }
+.order-status { display: inline-block; padding: 3px 10px; border-radius: 999px; color: #fff; font-size: 11px; font-weight: 600; white-space: nowrap; }
+.status-select { border: 1px solid #d1d5db; border-radius: 6px; padding: 5px 8px; font-size: 12px; cursor: pointer; background: #fff; outline: none; }
+.status-select:focus { border-color: #378ADD; }
