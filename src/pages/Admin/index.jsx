@@ -1,3 +1,4 @@
+import ImportExcel from '../../components/admin/ImportExcel'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
@@ -14,6 +15,7 @@ export default function Admin() {
   const [orders, setOrders] = useState([])
   const [stats, setStats] = useState({ total: 0, con_hang: 0, da_ban: 0, dang_ve: 0 })
   const [showForm, setShowForm] = useState(false)
+  const [showImport, setShowImport] = useState(false)
   const [editProduct, setEditProduct] = useState(null)
   const [loadingData, setLoadingData] = useState(true)
 
@@ -94,6 +96,9 @@ export default function Admin() {
               <button className="btn-add" onClick={() => { setEditProduct(null); setShowForm(true) }}>
                 + Thêm sản phẩm
               </button>
+              <button className="btn-import-excel" onClick={() => setShowImport(true)}>
+                📥 Import Excel
+              </button>
             </div>
             {loadingData ? <div className="admin-loading-inline">Đang tải...</div> : (
               <ProductTable
@@ -115,6 +120,12 @@ export default function Admin() {
           onClose={() => setShowForm(false)}
           onSaved={() => { setShowForm(false); fetchProducts() }}
         />
+      )}
+      {showImport && (
+  <ImportExcel
+    onClose={() => setShowImport(false)}
+    onImported={fetchProducts}
+  />
       )}
     </div>
   )

@@ -46,3 +46,5 @@
 .btn-add:hover { background: #2a6bb5; }
 
 .admin-loading-inline { padding: 3rem; text-align: center; color: #9ca3af; }
+.btn-import-excel { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 500; cursor: pointer; margin-left: 8px; }
+.btn-import-excel:hover { background: #dcfce7; }
