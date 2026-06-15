@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import './ProductForm.css'
 
-const EMPTY = { 'Tên sản phẩm': '', 'cấu hình': '', 'Giá bán': '', 'Serial': '', 'Màu': '', 'Tình trạng pin': '', 'Ngoại hình': '', 'Ghi chú': '', status: 'con_hang', image_url: '' }
+const EMPTY = { 'Tên sản phẩm': '', 'cấu hình': '', 'Giá bán': '', 'Serial': '', 'Màu': '', 'Tình trạng pin': '', 'Ngoại hình': '', 'Ghi chú': '', status: 'con_hang', image_url: '', allow_order: true }
 
 export default function ProductForm({ product, onClose, onSaved }) {
   const [form, setForm] = useState(product ? { ...product, 'Giá bán': product['Giá bán'] || '' } : { ...EMPTY })
@@ -134,6 +134,13 @@ export default function ProductForm({ product, onClose, onSaved }) {
             <div className="form-group full">
               <label className="form-label">Ghi chú</label>
               <textarea className="form-input" name="Ghi chú" value={form['Ghi chú']} onChange={handleChange} rows={3} placeholder="Thông tin thêm..." />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Cho phép đặt hàng</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input type="checkbox" name="allow_order" checked={!!form.allow_order} onChange={e => setForm(f => ({ ...f, allow_order: e.target.checked }))} />
+                <small style={{ color: '#6b7280' }}>Bỏ chọn để ẩn nút đặt hàng cho sản phẩm này</small>
+              </div>
             </div>
           </div>
 

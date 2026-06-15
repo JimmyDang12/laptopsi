@@ -43,7 +43,9 @@ export default function ProductDetail({ product, images, onClose, onOrder }) {
             <div className="detail-actions">
               <a className="btn-call" href="tel:0972855866">📞 Gọi ngay</a>
               <a className="btn-zalo" href="https://zalo.me/0972855866" target="_blank" rel="noreferrer">💬 Zalo</a>
-              {product.status === 'con_hang' && <button className="btn-order" onClick={() => onOrder(product)}>🛒 Đặt hàng</button>}
+              {(product.status === 'con_hang' && (product.allow_order === undefined || product.allow_order === true)) && (
+                <button className="btn-order" onClick={() => onOrder(product)}>🛒 Đặt hàng</button>
+              )}
             </div>
           </div>
         </div>
