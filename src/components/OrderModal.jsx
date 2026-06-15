@@ -31,7 +31,7 @@ export default function OrderModal({ product, onClose }) {
       // If user is logged in, attach user id
       if (user && user.id) payload.user_id = user.id
 
-      const { data, error } = await supabase.from('orders').insert([payload]).select().single()
+      const { error } = await supabase.from('orders').insert([payload]).select().single()
       if (error) throw error
       setSuccess(true)
     } catch (err) {

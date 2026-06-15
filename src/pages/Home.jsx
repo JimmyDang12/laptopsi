@@ -7,12 +7,7 @@ import OrderModal from '../components/OrderModal'
 import AuthModal from '../components/AuthModal'
 import './Home.css'
 
-const FILTERS = [
-  { key: 'all', label: 'Tất cả' },
-  { key: 'con_hang', label: 'Còn hàng' },
-  { key: 'da_ban', label: 'Đã bán' },
-  { key: 'dang_ve', label: 'Đang về' },
-]
+// FILTERS removed (unused). Re-introduce when adding a filter UI.
 
 export default function Home() {
   const { user } = useAuth()
@@ -24,14 +19,25 @@ export default function Home() {
   const [orderProduct, setOrderProduct] = useState(null)
   const [showAuth, setShowAuth] = useState(false)
 
-  useEffect(() => { if (user) fetchProducts(); else setLoading(false) }, [user])
-
   async function fetchProducts() {
     setLoading(true)
     const { data } = await supabase.from('products').select('*').order('created_at', { ascending: false })
     setProducts(data || [])
     setLoading(false)
   }
+
+  useEffect(() => {
+    let mounted = true
+    async function init() {
+      if (user) {
+        await fetchProducts()
+      } else if (mounted) {
+        setLoading(false)
+      }
+    }
+    init()
+    return () => { mounted = false }
+  }, [user])
 
   async function openDetail(product) {
     setSelected(product)
