@@ -13,7 +13,6 @@ export default function Home() {
   const { user } = useAuth()
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState('all')
   const [selected, setSelected] = useState(null)
   const [selectedImages, setSelectedImages] = useState([])
   const [orderProduct, setOrderProduct] = useState(null)
