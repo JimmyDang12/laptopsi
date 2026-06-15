@@ -15,12 +15,15 @@ export default function CustomerTable({ customers, onViewCustomer, onCustomerDel
     
     try {
       const { error } = await supabase.from('customers').delete().eq('id', id)
-      if (error) throw error
+      if (error) {
+        console.error('Delete error details:', error)
+        throw error
+      }
       alert('✅ Khách hàng đã xoá')
       if (onCustomerDeleted) onCustomerDeleted()
     } catch (err) {
       console.error('Lỗi xoá khách:', err)
-      alert('❌ Không thể xoá khách hàng')
+      alert(`❌ Không thể xoá khách hàng: ${err.message || err}`)
     }
   }
 

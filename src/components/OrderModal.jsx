@@ -20,22 +20,27 @@ export default function OrderModal({ product, onClose }) {
         throw new Error('Bạn cần đăng nhập trước')
       }
 
-      // Get user phone from auth metadata or user object
-      const userPhone = user?.phone || user?.user_metadata?.phone
-      const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Khách hàng'
-
-      console.log('Order info:', { userPhone, userName, userId: user.id })
-
-      if (!userPhone) {
-        throw new Error('Không tìm thấy số điện thoại. Vui lòng cập nhật thông tin đăng nhập.')
+      // Get user phone/identifier - use phone if available, otherwise email
+      let userPhone = user?.phone || user?.user_metadata?.phone
+      if (!userPhone && user.email) {
+        // If no phone, use email as identifier (extract local part)
+        userPhone = user.email
       }
 
-      // Check if customer exists by phone
+      const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Khách hàng'
+
+      console.log('Order info:', { userPhone, userName, userId: user.id, userEmail: user.email })
+
+      if (!userPhone) {
+        throw new Error('Không tìm thấy thông tin liên hệ. Vui lòng đăng nhập lại.')
+      }
+
+      // Check if customer exists by phone/email
       const { data: existingCustomer } = await supabase
         .from('customers')
         .select('id, admin_notes')
         .eq('phone', userPhone)
-        .single()
+        .maybeSingle()
 
       let customerId = existingCustomer?.id
       let existingNotes = existingCustomer?.admin_notes || ''
@@ -47,6 +52,7 @@ export default function OrderModal({ product, onClose }) {
           .insert([{
             phone: userPhone,
             name: userName,
+            email: user.email,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           }])
@@ -63,7 +69,7 @@ export default function OrderModal({ product, onClose }) {
         // Update existing customer
         await supabase
           .from('customers')
-          .update({ name: userName, updated_at: new Date().toISOString() })
+          .update({ name: userName, email: user.email, updated_at: new Date().toISOString() })
           .eq('id', customerId)
       }
 
