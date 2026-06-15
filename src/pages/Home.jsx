@@ -94,7 +94,11 @@ export default function Home() {
 
       <footer className="footer">© 2026 Smartlaptop Store · laptopsi.store</footer>
 
-      {selected && <ProductDetail product={selected} images={selectedImages} onClose={() => setSelected(null)} onOrder={(p) => { setSelected(null); setOrderProduct(p) }} />}
+      {selected && <ProductDetail product={selected} images={selectedImages} onClose={() => setSelected(null)} onOrder={(p) => {
+        // Require login before placing an order: show AuthModal if user not logged in
+        if (!user) { setSelected(null); setShowAuth(true); return }
+        setSelected(null); setOrderProduct(p)
+      }} />}
       {orderProduct && <OrderModal product={orderProduct} onClose={() => setOrderProduct(null)} />}
     </div>
   )
