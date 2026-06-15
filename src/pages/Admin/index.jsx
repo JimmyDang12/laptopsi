@@ -10,6 +10,9 @@ import ProductForm from '../../components/admin/ProductForm'
 import OrderTable from '../../components/admin/OrderTable'
 import CustomerTable from '../../components/admin/CustomerTable'
 import CustomerDetail from '../../components/admin/CustomerDetail'
+import AddCustomerModal from '../../components/admin/AddCustomerModal'
+import SellModal from '../../components/admin/SellModal'
+import NotificationBell from '../../components/admin/NotificationBell'
 import './Admin.css'
 
 export default function Admin() {
@@ -26,10 +29,24 @@ export default function Admin() {
   const [selectedImages, setSelectedImages] = useState([])
   const [orderProduct, setOrderProduct] = useState(null)
   const [selectedCustomer, setSelectedCustomer] = useState(null)
+  const [showAddCustomer, setShowAddCustomer] = useState(false)
+  const [sellProduct, setSellProduct] = useState(null)
   const [loadingData, setLoadingData] = useState(true)
 
   useEffect(() => {
     if (isAdmin) { fetchProducts(); fetchOrders(); fetchCustomers() }
+  }, [isAdmin])
+
+  // Lắng nghe đơn hàng mới theo thời gian thực để cập nhật thông báo
+  useEffect(() => {
+    if (!isAdmin) return
+    const channel = supabase
+      .channel('orders-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+        fetchOrders()
+      })
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
   }, [isAdmin])
 
   async function fetchProducts() {
@@ -57,9 +74,28 @@ export default function Admin() {
   }
 
   async function deleteProduct(id) {
+    const product = products.find(p => p.id === id)
+    if (product?.status === 'da_ban') {
+      alert('🔒 Sản phẩm đã bán không thể xoá để giữ lịch sử giao dịch.')
+      return
+    }
     if (!confirm('Xoá sản phẩm này?')) return
+    // Gỡ liên kết ở đơn hàng để tránh lỗi khoá ngoại (lịch sử mua vẫn giữ vì đã lưu tên sản phẩm)
+    const { error: unlinkError } = await supabase.from('orders').update({ product_id: null }).eq('product_id', id)
+    if (unlinkError) {
+      alert('❌ Không thể gỡ liên kết đơn hàng: ' + unlinkError.message)
+      return
+    }
     await supabase.from('product_images').delete().eq('product_id', id)
-    await supabase.from('products').delete().eq('id', id)
+    const { data, error } = await supabase.from('products').delete().eq('id', id).select()
+    if (error) {
+      alert('❌ Không thể xoá sản phẩm: ' + error.message)
+      return
+    }
+    if (!data || data.length === 0) {
+      alert('❌ Không xoá được sản phẩm. Có thể do quyền (RLS) của bảng products trong Supabase chưa cho phép xoá.')
+      return
+    }
     fetchProducts()
   }
 
@@ -94,6 +130,7 @@ export default function Admin() {
           </div>
         </div>
         <div className="admin-header-right">
+          <NotificationBell orders={orders} onOpenOrders={() => setTab('orders')} />
           <a href="/" className="btn-view-site">← Xem trang web</a>
         </div>
       </div>
@@ -129,6 +166,7 @@ export default function Admin() {
                 onEdit={p => { setEditProduct(p); setShowForm(true) }}
                 onDelete={deleteProduct}
                 onView={openDetail}
+                onSell={setSellProduct}
               />
             )}
           </>
@@ -137,7 +175,14 @@ export default function Admin() {
           <OrderTable orders={orders} onUpdateStatus={updateOrderStatus} />
         )}
         {tab === 'customers' && (
-          <CustomerTable customers={customers} onViewCustomer={setSelectedCustomer} onCustomerDeleted={fetchCustomers} />
+          <>
+            <div className="admin-toolbar">
+              <button className="btn-add" onClick={() => setShowAddCustomer(true)}>
+                + Thêm khách hàng
+              </button>
+            </div>
+            <CustomerTable customers={customers} onViewCustomer={setSelectedCustomer} />
+          </>
         )}
       </div>
 
@@ -157,6 +202,20 @@ export default function Admin() {
       {selected && <ProductDetail product={selected} images={selectedImages} onClose={() => setSelected(null)} onOrder={(p) => { setSelected(null); setOrderProduct(p) }} />}
       {orderProduct && <OrderModal product={orderProduct} onClose={() => setOrderProduct(null)} />}
       {selectedCustomer && <CustomerDetail customer={selectedCustomer} onClose={() => setSelectedCustomer(null)} onCustomerUpdated={fetchCustomers} />}
+      {showAddCustomer && (
+        <AddCustomerModal
+          onClose={() => setShowAddCustomer(false)}
+          onCustomerAdded={fetchCustomers}
+        />
+      )}
+      {sellProduct && (
+        <SellModal
+          product={sellProduct}
+          customers={customers}
+          onClose={() => setSellProduct(null)}
+          onSold={() => { fetchProducts(); fetchOrders(); fetchCustomers() }}
+        />
+      )}
     </div>
   )
 }

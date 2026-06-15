@@ -1,7 +1,7 @@
 import './ProductTable.css'
 const STATUS_MAP = { con_hang: { label: 'Còn hàng', color: '#22c55e' }, da_ban: { label: 'Đã bán', color: '#ef4444' }, dang_ve: { label: 'Đang về', color: '#f59e0b' } }
 
-export default function ProductTable({ products, onEdit, onDelete, onView }) {
+export default function ProductTable({ products, onEdit, onDelete, onView, onSell }) {
   const formatPrice = p => p ? new Intl.NumberFormat('vi-VN').format(p) + '₫' : '—'
   if (products.length === 0) return <div className="table-empty">Chưa có sản phẩm nào. Bấm "+ Thêm sản phẩm" để bắt đầu.</div>
   return (
@@ -36,8 +36,13 @@ export default function ProductTable({ products, onEdit, onDelete, onView }) {
                 <td><span className="status-dot" style={{ background: status.color }}>{status.label}</span></td>
                 <td>
                   <div className="table-actions">
+                    {p.status === 'con_hang' && onSell && (
+                      <button className="btn-sell" onClick={() => onSell(p)}>💰 Bán</button>
+                    )}
                     <button className="btn-edit" onClick={() => onEdit(p)}>✏️ Sửa</button>
-                    <button className="btn-delete" onClick={() => onDelete(p.id)}>🗑️ Xoá</button>
+                    {p.status !== 'da_ban' && (
+                      <button className="btn-delete" onClick={() => onDelete(p.id)}>🗑️ Xoá</button>
+                    )}
                   </div>
                 </td>
               </tr>

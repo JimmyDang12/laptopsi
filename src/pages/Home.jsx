@@ -21,7 +21,8 @@ export default function Home() {
   async function fetchProducts() {
     setLoading(true)
     const { data } = await supabase.from('products').select('*').order('created_at', { ascending: false })
-    setProducts(data || [])
+    // Ẩn sản phẩm đã bán khỏi trang khách hàng
+    setProducts((data || []).filter(p => p.status !== 'da_ban'))
     setLoading(false)
   }
 

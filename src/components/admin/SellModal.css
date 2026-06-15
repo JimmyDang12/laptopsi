@@ -1,0 +1,11 @@
+.sell-modal { max-width: 460px; }
+.sell-product { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px 14px; margin-bottom: 1.25rem; }
+.sell-product-name { font-size: 15px; font-weight: 600; color: #0a1628; }
+.sell-product-listed { font-size: 13px; color: #6b7280; margin-top: 4px; }
+.sell-product-serial { font-size: 12px; color: #6b7280; margin-top: 2px; }
+.sell-tabs { display: flex; gap: 8px; margin-bottom: 1.25rem; }
+.sell-tabs button { flex: 1; padding: 9px; border: 1px solid #d1d5db; background: #fff; border-radius: 8px; font-size: 13px; font-weight: 500; color: #374151; cursor: pointer; transition: all 0.15s; }
+.sell-tabs button.active { background: #378ADD; border-color: #378ADD; color: #fff; }
+.sell-select { width: 100%; padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; outline: none; box-sizing: border-box; font-family: inherit; background: #fff; }
+.sell-select:focus { border-color: #378ADD; }
+.sell-hint { color: #9ca3af; font-size: 12px; margin-top: 6px; }
