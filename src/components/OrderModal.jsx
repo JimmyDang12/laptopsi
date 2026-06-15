@@ -18,13 +18,32 @@ export default function OrderModal({ product, onClose }) {
     const msg = `Đặt hàng: ${product['Tên sản phẩm']}\nKhách: ${form.name}\nSĐT: ${form.phone}\nGhi chú: ${form.note}`
     window.open(`https://zalo.me/0972855866?text=${encodeURIComponent(msg)}`, '_blank')
 
-    // Save order to Supabase
+    // Save/upsert customer and then save order
     try {
+      // Upsert customer by phone
+      const customerPayload = {
+        phone: form.phone,
+        name: form.name,
+        updated_at: new Date().toISOString()
+      }
+      const { data: customerData, error: customerError } = await supabase
+        .from('customers')
+        .upsert([customerPayload], { onConflict: 'phone' })
+        .select()
+        .single()
+
+      if (customerError) {
+        console.warn('Cảnh báo: không thể lưu/cập nhật khách hàng:', customerError)
+        // Không throw — vẫn lưu order ngay cả khi customer save thất bại
+      }
+
+      // Save order to Supabase
       const payload = {
         product_id: product.id || null,
         product_name: product['Tên sản phẩm'] || null,
         customer_name: form.name,
         customer_phone: form.phone,
+        customer_id: customerData?.id || null,
         note: form.note || null,
         status: 'pending'
       }

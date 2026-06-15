@@ -1,0 +1,16 @@
+.customer-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.customer-table th { background: #f9fafb; padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #e5e7eb; }
+.customer-table td { padding: 12px 16px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+.customer-table tr:last-child td { border-bottom: none; }
+.customer-table tr:hover td { background: #fafafa; }
+.customer-id { font-weight: 600; color: #378ADD; }
+.customer-name { font-weight: 600; color: #0a1628; }
+.customer-phone { color: #378ADD; text-decoration: none; }
+.customer-phone:hover { text-decoration: underline; }
+.customer-email { font-size: 13px; color: #6b7280; }
+.customer-email a { color: #378ADD; text-decoration: none; }
+.customer-email a:hover { text-decoration: underline; }
+.customer-address { font-size: 13px; color: #6b7280; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.customer-orders { font-weight: 600; color: #059669; text-align: center; }
+.customer-spent { font-weight: 600; color: #d97706; }
+.customer-date { font-size: 13px; color: #9ca3af; white-space: nowrap; }

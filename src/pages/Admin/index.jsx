@@ -8,6 +8,7 @@ import ProductDetail from '../../components/ProductDetail'
 import OrderModal from '../../components/OrderModal'
 import ProductForm from '../../components/admin/ProductForm'
 import OrderTable from '../../components/admin/OrderTable'
+import CustomerTable from '../../components/admin/CustomerTable'
 import './Admin.css'
 
 export default function Admin() {
@@ -15,6 +16,7 @@ export default function Admin() {
   const [tab, setTab] = useState('products')
   const [products, setProducts] = useState([])
   const [orders, setOrders] = useState([])
+  const [customers, setCustomers] = useState([])
   const [stats, setStats] = useState({ total: 0, con_hang: 0, da_ban: 0, dang_ve: 0 })
   const [showForm, setShowForm] = useState(false)
   const [showImport, setShowImport] = useState(false)
@@ -25,7 +27,7 @@ export default function Admin() {
   const [loadingData, setLoadingData] = useState(true)
 
   useEffect(() => {
-    if (isAdmin) { fetchProducts(); fetchOrders() }
+    if (isAdmin) { fetchProducts(); fetchOrders(); fetchCustomers() }
   }, [isAdmin])
 
   async function fetchProducts() {
@@ -45,6 +47,11 @@ export default function Admin() {
   async function fetchOrders() {
     const { data } = await supabase.from('orders').select('*').order('created_at', { ascending: false })
     setOrders(data || [])
+  }
+
+  async function fetchCustomers() {
+    const { data } = await supabase.from('customers').select('*').order('created_at', { ascending: false })
+    setCustomers(data || [])
   }
 
   async function deleteProduct(id) {
@@ -98,6 +105,9 @@ export default function Admin() {
         <button className={tab === 'orders' ? 'active' : ''} onClick={() => setTab('orders')}>
           🛒 Đơn hàng ({orders.length})
         </button>
+        <button className={tab === 'customers' ? 'active' : ''} onClick={() => setTab('customers')}>
+          👥 Khách hàng ({customers.length})
+        </button>
       </div>
 
       <div className="admin-content">
@@ -123,6 +133,9 @@ export default function Admin() {
         )}
         {tab === 'orders' && (
           <OrderTable orders={orders} onUpdateStatus={updateOrderStatus} />
+        )}
+        {tab === 'customers' && (
+          <CustomerTable customers={customers} />
         )}
       </div>
 
