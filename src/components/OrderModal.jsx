@@ -14,11 +14,7 @@ export default function OrderModal({ product, onClose }) {
     e.preventDefault()
     setLoading(true)
 
-    // Prepare message and open Zalo as before
-    const msg = `Đặt hàng: ${product['Tên sản phẩm']}\nKhách: ${form.name}\nSĐT: ${form.phone}\nGhi chú: ${form.note}`
-    window.open(`https://zalo.me/0972855866?text=${encodeURIComponent(msg)}`, '_blank')
-
-    // Save/upsert customer and then save order
+    // Save/upsert customer and then save order (no Zalo)
     try {
       // Upsert customer by phone
       const customerPayload = {
@@ -34,7 +30,6 @@ export default function OrderModal({ product, onClose }) {
 
       if (customerError) {
         console.warn('Cảnh báo: không thể lưu/cập nhật khách hàng:', customerError)
-        // Không throw — vẫn lưu order ngay cả khi customer save thất bại
       }
 
       // Save order to Supabase
@@ -47,7 +42,6 @@ export default function OrderModal({ product, onClose }) {
         note: form.note || null,
         status: 'pending'
       }
-      // If user is logged in, attach user id
       if (user && user.id) payload.user_id = user.id
 
       const { error } = await supabase.from('orders').insert([payload]).select().single()
@@ -66,8 +60,8 @@ export default function OrderModal({ product, onClose }) {
       <div className="order-box" onClick={e => e.stopPropagation()}>
         <div className="order-success">
           <div className="success-icon">✅</div>
-          <h3>Đã mở Zalo!</h3>
-          <p>Thông tin đặt hàng đã được điền sẵn và đã lưu vào hệ thống. Nhấn gửi trên Zalo để hoàn tất.</p>
+          <h3>Đơn hàng đã được lưu!</h3>
+          <p>Thông tin đơn hàng đã được lưu vào hệ thống. Admin sẽ liên hệ bạn sớm nhất.</p>
           <button className="btn-done" onClick={onClose}>Xong</button>
         </div>
       </div>
@@ -84,8 +78,8 @@ export default function OrderModal({ product, onClose }) {
           <div className="form-group"><label>Họ tên *</label><input name="name" placeholder="Nguyễn Văn A" value={form.name} onChange={handleChange} required /></div>
           <div className="form-group"><label>Số điện thoại *</label><input name="phone" type="tel" placeholder="0912 345 678" value={form.phone} onChange={handleChange} required /></div>
           <div className="form-group"><label>Ghi chú</label><textarea name="note" placeholder="Yêu cầu thêm, địa chỉ giao hàng..." value={form.note} onChange={handleChange} rows={3} /></div>
-          <button type="submit" className="btn-order-submit" disabled={loading}>{loading ? 'Đang gửi...' : '💬 Xác nhận qua Zalo'}</button>
-          <p className="order-note">Đơn hàng xác nhận qua Zalo · 0972 855 866</p>
+          <button type="submit" className="btn-order-submit" disabled={loading}>{loading ? 'Đang gửi...' : '✅ Xác nhận đặt hàng'}</button>
+          <p className="order-note">Đơn hàng sẽ được xử lý bởi admin</p>
         </form>
       </div>
     </div>

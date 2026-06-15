@@ -9,6 +9,7 @@ import OrderModal from '../../components/OrderModal'
 import ProductForm from '../../components/admin/ProductForm'
 import OrderTable from '../../components/admin/OrderTable'
 import CustomerTable from '../../components/admin/CustomerTable'
+import CustomerDetail from '../../components/admin/CustomerDetail'
 import './Admin.css'
 
 export default function Admin() {
@@ -24,6 +25,7 @@ export default function Admin() {
   const [selected, setSelected] = useState(null)
   const [selectedImages, setSelectedImages] = useState([])
   const [orderProduct, setOrderProduct] = useState(null)
+  const [selectedCustomer, setSelectedCustomer] = useState(null)
   const [loadingData, setLoadingData] = useState(true)
 
   useEffect(() => {
@@ -135,7 +137,7 @@ export default function Admin() {
           <OrderTable orders={orders} onUpdateStatus={updateOrderStatus} />
         )}
         {tab === 'customers' && (
-          <CustomerTable customers={customers} />
+          <CustomerTable customers={customers} onViewCustomer={setSelectedCustomer} />
         )}
       </div>
 
@@ -154,6 +156,7 @@ export default function Admin() {
       )}
       {selected && <ProductDetail product={selected} images={selectedImages} onClose={() => setSelected(null)} onOrder={(p) => { setSelected(null); setOrderProduct(p) }} />}
       {orderProduct && <OrderModal product={orderProduct} onClose={() => setOrderProduct(null)} />}
+      {selectedCustomer && <CustomerDetail customer={selectedCustomer} onClose={() => setSelectedCustomer(null)} />}
     </div>
   )
 }

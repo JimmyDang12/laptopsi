@@ -1,6 +1,6 @@
 import './CustomerTable.css'
 
-export default function CustomerTable({ customers }) {
+export default function CustomerTable({ customers, onViewCustomer }) {
   function formatDate(str) {
     return new Date(str).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
   }
@@ -32,7 +32,7 @@ export default function CustomerTable({ customers }) {
           {customers.map((c, i) => (
             <tr key={c.id}>
               <td className="customer-id">#{customers.length - i}</td>
-              <td className="customer-name">{c.name}</td>
+              <td className="customer-name clickable" onClick={() => onViewCustomer && onViewCustomer(c)}>{c.name}</td>
               <td><a href={`tel:${c.phone}`} className="customer-phone">{c.phone}</a></td>
               <td className="customer-email">{c.email ? <a href={`mailto:${c.email}`}>{c.email}</a> : '—'}</td>
               <td className="customer-address">{c.address || '—'}</td>
