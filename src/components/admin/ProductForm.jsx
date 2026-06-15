@@ -116,14 +116,6 @@ export default function ProductForm({ product, onClose, onSaved }) {
               <input className="form-input" name="Giá bán" type="number" value={form['Giá bán']} onChange={handleChange} placeholder="18500000" />
             </div>
             <div className="form-group">
-              <label className="form-label">Trạng thái</label>
-              <select className="form-input" name="status" value={form.status} onChange={handleChange}>
-                <option value="con_hang">Còn hàng</option>
-                <option value="da_ban">Đã bán</option>
-                <option value="dang_ve">Đang về</option>
-              </select>
-            </div>
-            <div className="form-group">
               <label className="form-label">Serial</label>
               <input className="form-input" name="Serial" value={form['Serial']} onChange={handleChange} placeholder="SN123456" />
             </div>

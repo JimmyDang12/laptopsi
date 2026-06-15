@@ -4,6 +4,8 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 import StatsBar from '../../components/admin/StatsBar'
 import ProductTable from '../../components/admin/ProductTable'
+import ProductDetail from '../../components/ProductDetail'
+import OrderModal from '../../components/OrderModal'
 import ProductForm from '../../components/admin/ProductForm'
 import OrderTable from '../../components/admin/OrderTable'
 import './Admin.css'
@@ -17,6 +19,9 @@ export default function Admin() {
   const [showForm, setShowForm] = useState(false)
   const [showImport, setShowImport] = useState(false)
   const [editProduct, setEditProduct] = useState(null)
+  const [selected, setSelected] = useState(null)
+  const [selectedImages, setSelectedImages] = useState([])
+  const [orderProduct, setOrderProduct] = useState(null)
   const [loadingData, setLoadingData] = useState(true)
 
   useEffect(() => {
@@ -47,6 +52,12 @@ export default function Admin() {
     await supabase.from('product_images').delete().eq('product_id', id)
     await supabase.from('products').delete().eq('id', id)
     fetchProducts()
+  }
+
+  async function openDetail(product) {
+    setSelected(product)
+    const { data } = await supabase.from('product_images').select('*').eq('product_id', product.id).order('order')
+    setSelectedImages(data || [])
   }
 
   async function updateOrderStatus(id, status) {
@@ -105,6 +116,7 @@ export default function Admin() {
                 products={products}
                 onEdit={p => { setEditProduct(p); setShowForm(true) }}
                 onDelete={deleteProduct}
+                onView={openDetail}
               />
             )}
           </>
@@ -127,6 +139,8 @@ export default function Admin() {
     onImported={fetchProducts}
   />
       )}
+      {selected && <ProductDetail product={selected} images={selectedImages} onClose={() => setSelected(null)} onOrder={(p) => { setSelected(null); setOrderProduct(p) }} />}
+      {orderProduct && <OrderModal product={orderProduct} onClose={() => setOrderProduct(null)} />}
     </div>
   )
 }

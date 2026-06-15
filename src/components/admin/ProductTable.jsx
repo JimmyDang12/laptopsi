@@ -1,7 +1,7 @@
 import './ProductTable.css'
 const STATUS_MAP = { con_hang: { label: 'Còn hàng', color: '#22c55e' }, da_ban: { label: 'Đã bán', color: '#ef4444' }, dang_ve: { label: 'Đang về', color: '#f59e0b' } }
 
-export default function ProductTable({ products, onEdit, onDelete }) {
+export default function ProductTable({ products, onEdit, onDelete, onView }) {
   const formatPrice = p => p ? new Intl.NumberFormat('vi-VN').format(p) + '₫' : '—'
   if (products.length === 0) return <div className="table-empty">Chưa có sản phẩm nào. Bấm "+ Thêm sản phẩm" để bắt đầu.</div>
   return (
@@ -24,11 +24,11 @@ export default function ProductTable({ products, onEdit, onDelete }) {
               <tr key={p.id}>
                 <td>
                   {p.image_url
-                    ? <img src={p.image_url} alt="" className="table-img" />
-                    : <div className="table-img-placeholder">💻</div>}
+                    ? <img src={p.image_url} alt="" className="table-img" onClick={() => onView && onView(p)} />
+                    : <div className="table-img-placeholder" onClick={() => onView && onView(p)}>💻</div>}
                 </td>
                 <td>
-                  <p className="table-name">{p['Tên sản phẩm']}</p>
+                  <p className="table-name clickable" onClick={() => onView && onView(p)}>{p['Tên sản phẩm']}</p>
                   {p['Serial'] && <p className="table-serial">SN: {p['Serial']}</p>}
                 </td>
                 <td className="table-spec">{p['cấu hình'] || '—'}</td>

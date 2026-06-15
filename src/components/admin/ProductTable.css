@@ -7,6 +7,7 @@
 .table-img { width: 48px; height: 48px; object-fit: cover; border-radius: 6px; }
 .table-img-placeholder { width: 48px; height: 48px; background: #f3f4f6; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
 .table-name { font-weight: 600; color: #0a1628; margin: 0 0 2px; }
+.clickable { cursor: pointer; }
 .table-serial { font-size: 12px; color: #9ca3af; margin: 0; }
 .table-spec { color: #6b7280; max-width: 200px; }
 .table-price { font-weight: 600; color: #378ADD; white-space: nowrap; }

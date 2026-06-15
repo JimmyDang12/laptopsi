@@ -39,7 +39,7 @@ export default function Home() {
     setSelectedImages(data || [])
   }
 
-  const filtered = filter === 'all' ? products : products.filter(p => p.status === filter)
+        const filtered = products
 
   if (!user) return (
     <div className="gate">
@@ -68,12 +68,7 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="filter-bar">
-        <p className="section-label">Sản phẩm hiện có</p>
-        <div className="filter-tabs">
-          {FILTERS.map(f => <button key={f.key} className={filter === f.key ? 'active' : ''} onClick={() => setFilter(f.key)}>{f.label}</button>)}
-        </div>
-      </div>
+
 
       <div className="products-section">
         {loading ? <div className="loading-state">Đang tải sản phẩm...</div>
