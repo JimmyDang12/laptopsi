@@ -36,7 +36,7 @@ export default function ProductTable({ products, onEdit, onDelete, onView, onSel
                 <td><span className="status-dot" style={{ background: status.color }}>{status.label}</span></td>
                 <td>
                   <div className="table-actions">
-                    {p.status === 'con_hang' && onSell && (
+                    {p.status !== 'da_ban' && onSell && (
                       <button className="btn-sell" onClick={() => onSell(p)}>💰 Bán</button>
                     )}
                     <button className="btn-edit" onClick={() => onEdit(p)}>✏️ Sửa</button>
