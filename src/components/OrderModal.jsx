@@ -14,22 +14,37 @@ export default function OrderModal({ product, onClose }) {
     e.preventDefault()
     setLoading(true)
 
-    // Save/upsert customer and then save order (no Zalo)
     try {
-      // Upsert customer by phone
-      const customerPayload = {
-        phone: form.phone,
-        name: form.name,
-        updated_at: new Date().toISOString()
-      }
-      const { data: customerData, error: customerError } = await supabase
+      // First check if customer exists by phone
+      const { data: existingCustomer } = await supabase
         .from('customers')
-        .upsert([customerPayload], { onConflict: 'phone' })
-        .select()
+        .select('id')
+        .eq('phone', form.phone)
         .single()
 
-      if (customerError) {
-        console.warn('Cảnh báo: không thể lưu/cập nhật khách hàng:', customerError)
+      let customerId = existingCustomer?.id
+
+      // If customer doesn't exist, insert new one
+      if (!customerId) {
+        const { data: newCustomer, error: insertError } = await supabase
+          .from('customers')
+          .insert([{
+            phone: form.phone,
+            name: form.name,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }])
+          .select('id')
+          .single()
+
+        if (insertError) throw insertError
+        customerId = newCustomer?.id
+      } else {
+        // Update existing customer
+        await supabase
+          .from('customers')
+          .update({ name: form.name, updated_at: new Date().toISOString() })
+          .eq('id', customerId)
       }
 
       // Save order to Supabase
@@ -38,13 +53,13 @@ export default function OrderModal({ product, onClose }) {
         product_name: product['Tên sản phẩm'] || null,
         customer_name: form.name,
         customer_phone: form.phone,
-        customer_id: customerData?.id || null,
+        customer_id: customerId,
         note: form.note || null,
         status: 'pending'
       }
       if (user && user.id) payload.user_id = user.id
 
-      const { error } = await supabase.from('orders').insert([payload]).select().single()
+      const { error } = await supabase.from('orders').insert([payload])
       if (error) throw error
       setSuccess(true)
     } catch (err) {

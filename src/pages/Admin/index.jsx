@@ -156,7 +156,7 @@ export default function Admin() {
       )}
       {selected && <ProductDetail product={selected} images={selectedImages} onClose={() => setSelected(null)} onOrder={(p) => { setSelected(null); setOrderProduct(p) }} />}
       {orderProduct && <OrderModal product={orderProduct} onClose={() => setOrderProduct(null)} />}
-      {selectedCustomer && <CustomerDetail customer={selectedCustomer} onClose={() => setSelectedCustomer(null)} />}
+      {selectedCustomer && <CustomerDetail customer={selectedCustomer} onClose={() => setSelectedCustomer(null)} onCustomerUpdated={fetchCustomers} />}
     </div>
   )
 }

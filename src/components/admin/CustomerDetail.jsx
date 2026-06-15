@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import './CustomerDetail.css'
 
-export default function CustomerDetail({ customer, onClose }) {
+export default function CustomerDetail({ customer, onClose, onCustomerUpdated }) {
   const [orders, setOrders] = useState([])
   const [adminNotes, setAdminNotes] = useState(customer?.admin_notes || '')
   const [loading, setLoading] = useState(true)
@@ -31,6 +31,7 @@ export default function CustomerDetail({ customer, onClose }) {
         .update({ admin_notes: adminNotes })
         .eq('id', customer.id)
       if (error) throw error
+      if (onCustomerUpdated) onCustomerUpdated()
       alert('✅ Ghi chú đã lưu')
     } catch (err) {
       console.error('Lỗi lưu ghi chú:', err)
