@@ -137,7 +137,7 @@ export default function Admin() {
           <OrderTable orders={orders} onUpdateStatus={updateOrderStatus} />
         )}
         {tab === 'customers' && (
-          <CustomerTable customers={customers} onViewCustomer={setSelectedCustomer} />
+          <CustomerTable customers={customers} onViewCustomer={setSelectedCustomer} onCustomerDeleted={fetchCustomers} />
         )}
       </div>
 

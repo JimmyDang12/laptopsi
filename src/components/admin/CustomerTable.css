@@ -16,3 +16,7 @@
 .customer-orders { font-weight: 600; color: #059669; text-align: center; }
 .customer-spent { font-weight: 600; color: #d97706; }
 .customer-date { font-size: 13px; color: #9ca3af; white-space: nowrap; }
+.customer-actions { text-align: center; }
+.btn-delete { background: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; transition: 0.2s; }
+.btn-delete:hover { background: #dc2626; }
+.btn-delete:active { transform: scale(0.98); }

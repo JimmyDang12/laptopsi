@@ -15,10 +15,20 @@ export default function OrderModal({ product, onClose }) {
     setLoading(true)
 
     try {
-      // Get customer info from user metadata (set during auth)
-      const { data: { user: authUser } } = await supabase.auth.getUser()
-      const userPhone = authUser?.phone || authUser?.user_metadata?.phone
-      const userName = authUser?.user_metadata?.full_name || authUser?.email?.split('@')[0]
+      // Get customer info from user context (already authenticated)
+      if (!user || !user.id) {
+        throw new Error('Bạn cần đăng nhập trước')
+      }
+
+      // Get user phone from auth metadata or user object
+      const userPhone = user?.phone || user?.user_metadata?.phone
+      const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Khách hàng'
+
+      console.log('Order info:', { userPhone, userName, userId: user.id })
+
+      if (!userPhone) {
+        throw new Error('Không tìm thấy số điện thoại. Vui lòng cập nhật thông tin đăng nhập.')
+      }
 
       // Check if customer exists by phone
       const { data: existingCustomer } = await supabase
@@ -43,7 +53,10 @@ export default function OrderModal({ product, onClose }) {
           .select('id')
           .single()
 
-        if (insertError) throw insertError
+        if (insertError) {
+          console.error('Insert customer error:', insertError)
+          throw insertError
+        }
         customerId = newCustomer?.id
         existingNotes = ''
       } else {
@@ -70,10 +83,15 @@ export default function OrderModal({ product, onClose }) {
         ? `${existingNotes}\n\n[${timestamp}] ${product['Tên sản phẩm']}\n${orderNote}`
         : `[${timestamp}] ${product['Tên sản phẩm']}\n${orderNote}`
 
-      await supabase
+      const { error: updateError } = await supabase
         .from('customers')
         .update({ admin_notes: newAdminNotes })
         .eq('id', customerId)
+
+      if (updateError) {
+        console.error('Update admin_notes error:', updateError)
+        throw updateError
+      }
 
       // Save order to Supabase
       const payload = {
@@ -83,16 +101,19 @@ export default function OrderModal({ product, onClose }) {
         customer_phone: userPhone,
         customer_id: customerId,
         note: `Địa chỉ: ${form.address}${form.note ? '\n' + form.note : ''}`,
-        status: 'pending'
+        status: 'pending',
+        user_id: user.id
       }
-      if (user && user.id) payload.user_id = user.id
 
-      const { error } = await supabase.from('orders').insert([payload])
-      if (error) throw error
+      const { error: orderError } = await supabase.from('orders').insert([payload])
+      if (orderError) {
+        console.error('Insert order error:', orderError)
+        throw orderError
+      }
       setSuccess(true)
     } catch (err) {
       console.error('Lỗi lưu đơn hàng:', err)
-      alert('❌ Không thể lưu đơn hàng. Vui lòng thử lại hoặc liên hệ cửa hàng.')
+      alert('❌ ' + (err.message || 'Không thể lưu đơn hàng. Vui lòng thử lại.'))
     } finally {
       setLoading(false)
     }
