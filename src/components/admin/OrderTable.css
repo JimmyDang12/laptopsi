@@ -14,3 +14,5 @@
 .order-status { display: inline-block; padding: 3px 10px; border-radius: 999px; color: #fff; font-size: 11px; font-weight: 600; white-space: nowrap; }
 .status-select { border: 1px solid #d1d5db; border-radius: 6px; padding: 5px 8px; font-size: 12px; cursor: pointer; background: #fff; outline: none; }
 .status-select:focus { border-color: #378ADD; }
+.staff-select { border: 1px solid #d1d5db; border-radius: 6px; padding: 5px 8px; font-size: 12px; cursor: pointer; background: #fff; outline: none; max-width: 130px; }
+.staff-select:focus { border-color: #378ADD; }

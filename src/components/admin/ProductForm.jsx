@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
+import { PRODUCT_STATUSES, statusLabel } from '../../lib/productStatus'
 import './ProductForm.css'
 
 const EMPTY = { 'Tên sản phẩm': '', 'cấu hình': '', 'Giá bán': '', 'Serial': '', 'Màu': '', 'Tình trạng pin': '', 'Ngoại hình': '', 'Ghi chú': '', status: 'con_hang', image_url: '', allow_order: true }
@@ -114,6 +115,18 @@ export default function ProductForm({ product, onClose, onSaved }) {
             <div className="form-group">
               <label className="form-label">Giá bán (₫)</label>
               <input className="form-input" name="Giá bán" type="number" value={form['Giá bán']} onChange={handleChange} placeholder="18500000" />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Trạng thái *</label>
+              {isEdit && product.status === 'da_ban' ? (
+                <input className="form-input" value={statusLabel('da_ban') + ' (không thể đổi)'} disabled />
+              ) : (
+                <select className="form-input" name="status" value={form.status || 'con_hang'} onChange={handleChange} required>
+                  {PRODUCT_STATUSES.map(s => (
+                    <option key={s.key} value={s.key}>{s.label}</option>
+                  ))}
+                </select>
+              )}
             </div>
             <div className="form-group">
               <label className="form-label">Serial</label>

@@ -39,7 +39,14 @@
 
 .admin-content { padding: 1.5rem; max-width: 1200px; margin: 0 auto; }
 
-.admin-toolbar { margin-bottom: 1rem; }
+.admin-toolbar { margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.admin-search { flex: 1; min-width: 200px; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; outline: none; box-sizing: border-box; }
+.admin-search:focus { border-color: #378ADD; }
+.admin-search-result { font-size: 13px; color: #6b7280; margin: 0 0 0.75rem; }
+.product-subtabs { display: flex; gap: 6px; margin-bottom: 1rem; flex-wrap: wrap; }
+.product-subtabs button { background: #fff; border: 1px solid #d1d5db; border-radius: 999px; padding: 7px 16px; font-size: 13px; font-weight: 500; color: #374151; cursor: pointer; transition: all 0.15s; }
+.product-subtabs button:hover { background: #f9fafb; }
+.product-subtabs button.active { background: #0a1628; border-color: #0a1628; color: #fff; }
 .btn-add {
   background: #378ADD; color: #fff; border: none; border-radius: 8px;
   padding: 10px 20px; font-size: 14px; font-weight: 500; cursor: pointer;
@@ -47,5 +54,5 @@
 .btn-add:hover { background: #2a6bb5; }
 
 .admin-loading-inline { padding: 3rem; text-align: center; color: #9ca3af; }
-.btn-import-excel { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 500; cursor: pointer; margin-left: 8px; }
+.btn-import-excel { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 500; cursor: pointer; }
 .btn-import-excel:hover { background: #dcfce7; }

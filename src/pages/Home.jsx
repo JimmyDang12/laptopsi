@@ -5,6 +5,7 @@ import ProductCard from '../components/ProductCard'
 import ProductDetail from '../components/ProductDetail'
 import OrderModal from '../components/OrderModal'
 import AuthModal from '../components/AuthModal'
+import { isCustomerVisible } from '../lib/productStatus'
 import './Home.css'
 
 // FILTERS removed (unused). Re-introduce when adding a filter UI.
@@ -21,8 +22,8 @@ export default function Home() {
   async function fetchProducts() {
     setLoading(true)
     const { data } = await supabase.from('products').select('*').order('created_at', { ascending: false })
-    // Ẩn sản phẩm đã bán khỏi trang khách hàng
-    setProducts((data || []).filter(p => p.status !== 'da_ban'))
+    // Chỉ hiển thị máy thuộc nhóm "Đang bán" (ẩn đã bán + máy cần xử lý)
+    setProducts((data || []).filter(p => isCustomerVisible(p.status)))
     setLoading(false)
   }
 

@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 import './ProductDetail.css'
-const STATUS_MAP = { con_hang: { label: 'Còn hàng', color: '#22c55e' }, da_ban: { label: 'Đã bán', color: '#ef4444' }, dang_ve: { label: 'Đang về', color: '#f59e0b' } }
+import { statusLabel, statusColor, isCustomerVisible } from '../lib/productStatus'
 
 export default function ProductDetail({ product, images, onClose, onOrder }) {
   const [currentImg, setCurrentImg] = useState(0)
   const [zoom, setZoom] = useState(false)
-  const status = STATUS_MAP[product.status] || STATUS_MAP.con_hang
+  const status = { label: statusLabel(product.status), color: statusColor(product.status) }
   // Gộp ảnh đại diện (image_url) với các ảnh phụ (product_images), loại trùng
   const galleryImages = images?.length > 0 ? images.map(i => i.image_url) : []
   const allImages = [...new Set([product.image_url, ...galleryImages].filter(Boolean))]
@@ -58,7 +58,7 @@ export default function ProductDetail({ product, images, onClose, onOrder }) {
             <div className="detail-actions">
               <a className="btn-call" href="tel:0972855866">📞 Gọi ngay</a>
               <a className="btn-zalo" href="https://zalo.me/0972855866" target="_blank" rel="noreferrer">💬 Zalo</a>
-              {(product.status === 'con_hang' && (product.allow_order === undefined || product.allow_order === true)) && (
+              {(isCustomerVisible(product.status) && (product.allow_order === undefined || product.allow_order === true)) && (
                 <button className="btn-order" onClick={() => onOrder(product)}>🛒 Đặt hàng</button>
               )}
             </div>

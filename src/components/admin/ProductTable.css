@@ -12,12 +12,17 @@
 .table-spec { color: #6b7280; max-width: 200px; }
 .table-price { font-weight: 600; color: #378ADD; white-space: nowrap; }
 .status-dot { display: inline-block; padding: 3px 10px; border-radius: 999px; color: #fff; font-size: 12px; font-weight: 600; }
+.table-buyer { font-size: 12px; color: #6b7280; margin: 5px 0 0; white-space: nowrap; }
 .table-actions { display: flex; gap: 6px; }
-.btn-edit, .btn-delete, .btn-sell { border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; cursor: pointer; font-weight: 500; }
+.btn-edit, .btn-delete, .btn-sell, .btn-refund, .btn-repair { border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; cursor: pointer; font-weight: 500; }
+.btn-repair { background: #eff6ff; color: #2563eb; }
+.btn-repair:hover { background: #dbeafe; }
 .btn-edit { background: #f0f7ff; color: #378ADD; }
 .btn-edit:hover { background: #dbeafe; }
 .btn-delete { background: #fef2f2; color: #ef4444; }
 .btn-delete:hover { background: #fee2e2; }
 .btn-sell { background: #ecfdf5; color: #16a34a; }
 .btn-sell:hover { background: #d1fae5; }
+.btn-refund { background: #fff7ed; color: #ea580c; }
+.btn-refund:hover { background: #ffedd5; }
 .table-empty { text-align: center; padding: 4rem; color: #9ca3af; background: #fff; border-radius: 12px; border: 1px solid #e5e7eb; }

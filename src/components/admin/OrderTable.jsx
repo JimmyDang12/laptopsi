@@ -6,7 +6,7 @@ const STATUS_MAP = {
   cancelled: { label: 'Đã huỷ', color: '#ef4444' },
 }
 
-export default function OrderTable({ orders, onUpdateStatus }) {
+export default function OrderTable({ orders, onUpdateStatus, staff = [], onAssignStaff }) {
   function formatDate(str) {
     return new Date(str).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
   }
@@ -25,6 +25,7 @@ export default function OrderTable({ orders, onUpdateStatus }) {
             <th>Khách hàng</th>
             <th>SĐT</th>
             <th>Ghi chú</th>
+            <th>Nhân viên</th>
             <th>Thời gian</th>
             <th>Trạng thái</th>
             <th>Thao tác</th>
@@ -40,6 +41,18 @@ export default function OrderTable({ orders, onUpdateStatus }) {
                 <td className="order-customer">{o.customer_name}</td>
                 <td><a href={`tel:${o.customer_phone}`} className="order-phone">{o.customer_phone}</a></td>
                 <td className="order-note">{o.note || '—'}</td>
+                <td>
+                  <select
+                    className="staff-select"
+                    value={o.staff_id || ''}
+                    onChange={e => onAssignStaff && onAssignStaff(o.id, e.target.value)}
+                  >
+                    <option value="">— Chưa gán —</option>
+                    {staff.map(s => (
+                      <option key={s.id} value={s.id}>{s.name}</option>
+                    ))}
+                  </select>
+                </td>
                 <td className="order-date">{formatDate(o.created_at)}</td>
                 <td><span className="order-status" style={{ background: status.color }}>{status.label}</span></td>
                 <td>

@@ -2,13 +2,14 @@ import { useState, useMemo } from 'react'
 import { supabase } from '../../lib/supabase'
 import './SellModal.css'
 
-export default function SellModal({ product, customers = [], onClose, onSold }) {
+export default function SellModal({ product, customers = [], staff = [], onClose, onSold }) {
   const [mode, setMode] = useState('existing') // 'existing' | 'new'
   const [search, setSearch] = useState('')
   const [selectedId, setSelectedId] = useState('')
   const [newCustomer, setNewCustomer] = useState({ name: '', phone: '', email: '', address: '' })
   const [note, setNote] = useState('')
   const [salePrice, setSalePrice] = useState(product?.['Giá bán'] ?? '')
+  const [staffId, setStaffId] = useState('')
   const [loading, setLoading] = useState(false)
 
   const price = salePrice === '' ? 0 : Number(salePrice)
@@ -57,17 +58,20 @@ export default function SellModal({ product, customers = [], onClose, onSold }) 
         if (!customer) throw new Error('Không tìm thấy khách hàng đã chọn')
       }
 
-      // 1. Lưu đơn hàng (lịch sử mua) — đánh dấu đã xác nhận vì admin ghi nhận giao dịch thực
-      const { error: orderError } = await supabase.from('orders').insert([{
+      // 1. Lưu đơn hàng (lịch sử mua) — trạng thái chờ xử lý
+      const orderPayload = {
         product_id: product.id || null,
         product_name: product['Tên sản phẩm'] || null,
         customer_id: customer.id,
         customer_name: customer.name,
         customer_phone: customer.phone,
         note: `Bán trực tiếp · ${formatPrice(price)}${note ? ' · ' + note : ''}`,
-        status: 'confirmed',
+        status: 'pending',
         created_at: now
-      }])
+      }
+      if (staffId) orderPayload.staff_id = Number(staffId)
+
+      const { error: orderError } = await supabase.from('orders').insert([orderPayload])
       if (orderError) throw orderError
 
       // 2. Chuyển sản phẩm: còn hàng -> đã bán, cập nhật giá bán thực tế
@@ -111,65 +115,67 @@ export default function SellModal({ product, customers = [], onClose, onSold }) 
           {product['Serial'] && <div className="sell-product-serial">SN: {product['Serial']}</div>}
         </div>
 
-        <div className="sell-tabs">
-          <button
-            type="button"
-            className={mode === 'existing' ? 'active' : ''}
-            onClick={() => setMode('existing')}
-          >Khách có sẵn</button>
-          <button
-            type="button"
-            className={mode === 'new' ? 'active' : ''}
-            onClick={() => setMode('new')}
-          >Khách mới</button>
-        </div>
-
         <form onSubmit={handleSubmit}>
-          {mode === 'existing' ? (
-            <>
+          <div className="sell-cols">
+            {/* Khách có sẵn — bên trái */}
+            <div className={`sell-col ${mode === 'existing' ? 'active' : ''}`} onClick={() => setMode('existing')}>
+              <div className="sell-col-head">
+                <span className="sell-radio">{mode === 'existing' ? '●' : '○'}</span> Khách có sẵn
+              </div>
               <div className="form-group">
-                <label>Tìm khách hàng</label>
                 <input
-                  placeholder="Tên, SĐT hoặc email..."
+                  placeholder="🔍 Tìm tên, SĐT, email..."
                   value={search}
                   onChange={e => setSearch(e.target.value)}
+                  onFocus={() => setMode('existing')}
                 />
               </div>
               <div className="form-group">
-                <label>Chọn khách hàng *</label>
-                <select value={selectedId} onChange={e => setSelectedId(e.target.value)} className="sell-select">
-                  <option value="">— Chọn khách —</option>
+                <select
+                  value={selectedId}
+                  onChange={e => setSelectedId(e.target.value)}
+                  onFocus={() => setMode('existing')}
+                  className="sell-select"
+                  size={5}
+                >
                   {filtered.map(c => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} · {c.phone}
-                    </option>
+                    <option key={c.id} value={c.id}>{c.name} · {c.phone}</option>
                   ))}
                 </select>
-                {filtered.length === 0 && (
-                  <small className="sell-hint">Không tìm thấy khách. Chuyển sang "Khách mới" để thêm.</small>
-                )}
+                {filtered.length === 0 && <small className="sell-hint">Không tìm thấy khách phù hợp.</small>}
               </div>
-            </>
-          ) : (
-            <>
-              <div className="form-group">
-                <label>Tên khách hàng *</label>
-                <input name="name" placeholder="Nguyễn Văn A" value={newCustomer.name} onChange={handleNewChange} />
+            </div>
+
+            {/* Khách mới — bên phải */}
+            <div className={`sell-col ${mode === 'new' ? 'active' : ''}`} onClick={() => setMode('new')}>
+              <div className="sell-col-head">
+                <span className="sell-radio">{mode === 'new' ? '●' : '○'}</span> Khách mới
               </div>
               <div className="form-group">
-                <label>Số điện thoại *</label>
-                <input name="phone" type="tel" placeholder="0912345678" value={newCustomer.phone} onChange={handleNewChange} />
+                <input name="name" placeholder="Tên khách *" value={newCustomer.name} onChange={handleNewChange} onFocus={() => setMode('new')} />
               </div>
               <div className="form-group">
-                <label>Email</label>
-                <input name="email" type="email" placeholder="abc@example.com" value={newCustomer.email} onChange={handleNewChange} />
+                <input name="phone" type="tel" placeholder="Số điện thoại *" value={newCustomer.phone} onChange={handleNewChange} onFocus={() => setMode('new')} />
               </div>
               <div className="form-group">
-                <label>Địa chỉ</label>
-                <input name="address" placeholder="123 Đường ABC, Quận 1" value={newCustomer.address} onChange={handleNewChange} />
+                <input name="email" type="email" placeholder="Email" value={newCustomer.email} onChange={handleNewChange} onFocus={() => setMode('new')} />
               </div>
-            </>
-          )}
+              <div className="form-group">
+                <input name="address" placeholder="Địa chỉ" value={newCustomer.address} onChange={handleNewChange} onFocus={() => setMode('new')} />
+              </div>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Nhân viên phụ trách</label>
+            <select className="sell-select" value={staffId} onChange={e => setStaffId(e.target.value)}>
+              <option value="">— Chọn nhân viên —</option>
+              {staff.map(s => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+            {staff.length === 0 && <small className="sell-hint">Chưa có nhân viên. Thêm ở tab "Nhân viên".</small>}
+          </div>
 
           <div className="form-group">
             <label>Giá bán thực tế (₫) *</label>

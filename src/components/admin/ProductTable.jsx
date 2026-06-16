@@ -1,9 +1,9 @@
 import './ProductTable.css'
-const STATUS_MAP = { con_hang: { label: 'Còn hàng', color: '#22c55e' }, da_ban: { label: 'Đã bán', color: '#ef4444' }, dang_ve: { label: 'Đang về', color: '#f59e0b' } }
+import { statusLabel, statusColor, isSellable, adminTab } from '../../lib/productStatus'
 
-export default function ProductTable({ products, onEdit, onDelete, onView, onSell }) {
+export default function ProductTable({ products, onEdit, onDelete, onView, onSell, onRefund, onRepair, ordersByProduct = {} }) {
   const formatPrice = p => p ? new Intl.NumberFormat('vi-VN').format(p) + '₫' : '—'
-  if (products.length === 0) return <div className="table-empty">Chưa có sản phẩm nào. Bấm "+ Thêm sản phẩm" để bắt đầu.</div>
+  if (products.length === 0) return <div className="table-empty">Không có sản phẩm nào.</div>
   return (
     <div className="table-wrap">
       <table className="product-table">
@@ -19,7 +19,8 @@ export default function ProductTable({ products, onEdit, onDelete, onView, onSel
         </thead>
         <tbody>
           {products.map(p => {
-            const status = STATUS_MAP[p.status] || STATUS_MAP.con_hang
+            const buyer = p.status === 'da_ban' ? ordersByProduct[p.id] : null
+            const inProcessing = adminTab(p.status) === 'can_xu_ly'
             return (
               <tr key={p.id}>
                 <td>
@@ -33,11 +34,22 @@ export default function ProductTable({ products, onEdit, onDelete, onView, onSel
                 </td>
                 <td className="table-spec">{p['cấu hình'] || '—'}</td>
                 <td className="table-price">{formatPrice(p['Giá bán'])}</td>
-                <td><span className="status-dot" style={{ background: status.color }}>{status.label}</span></td>
+                <td>
+                  <span className="status-dot" style={{ background: statusColor(p.status) }}>{statusLabel(p.status)}</span>
+                  {buyer && (
+                    <p className="table-buyer">👤 {buyer.customer_name || 'Khách'}{buyer.customer_phone ? ` · ${buyer.customer_phone}` : ''}</p>
+                  )}
+                </td>
                 <td>
                   <div className="table-actions">
-                    {p.status !== 'da_ban' && onSell && (
+                    {isSellable(p.status) && onSell && (
                       <button className="btn-sell" onClick={() => onSell(p)}>💰 Bán</button>
+                    )}
+                    {inProcessing && onRepair && (
+                      <button className="btn-repair" onClick={() => onRepair(p)}>🔧 Sửa chữa</button>
+                    )}
+                    {p.status === 'da_ban' && onRefund && (
+                      <button className="btn-refund" onClick={() => onRefund(p)}>↩️ Trả hàng</button>
                     )}
                     <button className="btn-edit" onClick={() => onEdit(p)}>✏️ Sửa</button>
                     {p.status !== 'da_ban' && (

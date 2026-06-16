@@ -1,0 +1,19 @@
+.repair-modal { max-width: 520px; }
+.repair-product { font-size: 13px; color: #6b7280; margin: -0.5rem 0 1rem; }
+.repair-add { display: flex; flex-direction: column; gap: 8px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; margin-bottom: 1rem; }
+.repair-add textarea { width: 100%; padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; outline: none; box-sizing: border-box; font-family: inherit; resize: vertical; }
+.repair-add textarea:focus { border-color: #378ADD; }
+.repair-add-foot { display: flex; gap: 8px; }
+.repair-add-foot input { flex: 1; padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; outline: none; box-sizing: border-box; }
+.repair-add-foot input:focus { border-color: #378ADD; }
+.repair-add-foot .btn-submit { white-space: nowrap; }
+.repair-list-head { display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 600; color: #0a1628; margin-bottom: 8px; }
+.repair-total { color: #ea580c; font-weight: 600; }
+.repair-empty { padding: 1.5rem; text-align: center; color: #9ca3af; font-size: 13px; }
+.repair-list { display: flex; flex-direction: column; gap: 8px; max-height: 320px; overflow-y: auto; }
+.repair-item { display: flex; align-items: flex-start; gap: 8px; border: 1px solid #f0f0f0; border-radius: 8px; padding: 10px 12px; }
+.repair-item-main { flex: 1; }
+.repair-content { font-size: 14px; color: #1f2937; white-space: pre-wrap; }
+.repair-meta { font-size: 12px; color: #9ca3af; margin-top: 4px; }
+.repair-del { background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 14px; padding: 2px 6px; }
+.repair-del:hover { color: #ef4444; }

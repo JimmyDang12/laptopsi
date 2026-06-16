@@ -1,0 +1,18 @@
+.staff-panel { display: flex; flex-direction: column; gap: 1rem; }
+.staff-add { display: flex; flex-direction: column; gap: 8px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px; }
+.staff-add-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.staff-add input { flex: 1; min-width: 160px; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; outline: none; box-sizing: border-box; background: #fff; }
+.staff-add input:focus { border-color: #378ADD; }
+.staff-add-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.staff-hint { color: #6b7280; font-size: 12px; flex: 1; min-width: 200px; }
+.staff-acc.yes { color: #16a34a; font-size: 12px; font-weight: 500; }
+.staff-acc.no { color: #9ca3af; }
+.staff-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.staff-table th { background: #f9fafb; padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #e5e7eb; }
+.staff-table td { padding: 12px 16px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+.staff-table tr:last-child td { border-bottom: none; }
+.staff-name { font-weight: 600; color: #0a1628; }
+.staff-actions { display: flex; gap: 6px; }
+.staff-actions .btn-edit, .staff-actions .btn-delete { border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; cursor: pointer; font-weight: 500; }
+.staff-actions .btn-edit { background: #f0f7ff; color: #378ADD; }
+.staff-actions .btn-delete { background: #fef2f2; color: #ef4444; }

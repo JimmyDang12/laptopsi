@@ -2,9 +2,9 @@ import './StatsBar.css'
 export default function StatsBar({ stats }) {
   const items = [
     { label: 'Tổng sản phẩm', value: stats.total, color: '#378ADD' },
-    { label: 'Còn hàng', value: stats.con_hang, color: '#22c55e' },
+    { label: 'Đang bán', value: stats.dang_ban, color: '#22c55e' },
+    { label: 'Cần xử lý', value: stats.can_xu_ly, color: '#f59e0b' },
     { label: 'Đã bán', value: stats.da_ban, color: '#ef4444' },
-    { label: 'Đang về', value: stats.dang_ve, color: '#f59e0b' },
   ]
   return (
     <div className="stats-bar">

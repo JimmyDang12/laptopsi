@@ -13,6 +13,9 @@ import CustomerDetail from '../../components/admin/CustomerDetail'
 import AddCustomerModal from '../../components/admin/AddCustomerModal'
 import SellModal from '../../components/admin/SellModal'
 import NotificationBell from '../../components/admin/NotificationBell'
+import StaffPanel from '../../components/admin/StaffPanel'
+import RepairModal from '../../components/admin/RepairModal'
+import { adminTab, PRODUCT_TABS } from '../../lib/productStatus'
 import './Admin.css'
 
 export default function Admin() {
@@ -21,7 +24,8 @@ export default function Admin() {
   const [products, setProducts] = useState([])
   const [orders, setOrders] = useState([])
   const [customers, setCustomers] = useState([])
-  const [stats, setStats] = useState({ total: 0, con_hang: 0, da_ban: 0, dang_ve: 0 })
+  const [staff, setStaff] = useState([])
+  const [stats, setStats] = useState({ total: 0, dang_ban: 0, can_xu_ly: 0, da_ban: 0 })
   const [showForm, setShowForm] = useState(false)
   const [showImport, setShowImport] = useState(false)
   const [editProduct, setEditProduct] = useState(null)
@@ -31,10 +35,32 @@ export default function Admin() {
   const [selectedCustomer, setSelectedCustomer] = useState(null)
   const [showAddCustomer, setShowAddCustomer] = useState(false)
   const [sellProduct, setSellProduct] = useState(null)
+  const [repairProduct, setRepairProduct] = useState(null)
+  const [productSearch, setProductSearch] = useState('')
+  const [productTab, setProductTab] = useState('dang_ban')
   const [loadingData, setLoadingData] = useState(true)
 
+  // Lọc sản phẩm theo nhóm tab + tìm theo tên/serial
+  const q = productSearch.trim().toLowerCase()
+  const filteredProducts = products.filter(p => {
+    if (adminTab(p.status) !== productTab) return false
+    if (!q) return true
+    return (p['Tên sản phẩm'] || '').toLowerCase().includes(q) ||
+      (p['Serial'] || '').toLowerCase().includes(q)
+  })
+
+  // Map sản phẩm -> người mua (ưu tiên đơn đã xác nhận gần nhất)
+  const ordersByProduct = {}
+  for (const o of orders) {
+    if (!o.product_id) continue
+    const cur = ordersByProduct[o.product_id]
+    if (!cur || (o.status === 'confirmed' && cur.status !== 'confirmed')) {
+      ordersByProduct[o.product_id] = o
+    }
+  }
+
   useEffect(() => {
-    if (isAdmin) { fetchProducts(); fetchOrders(); fetchCustomers() }
+    if (isAdmin) { fetchProducts(); fetchOrders(); fetchCustomers(); fetchStaff() }
   }, [isAdmin])
 
   // Lắng nghe đơn hàng mới theo thời gian thực để cập nhật thông báo
@@ -56,9 +82,9 @@ export default function Admin() {
     setProducts(list)
     setStats({
       total: list.length,
-      con_hang: list.filter(p => p.status === 'con_hang').length,
-      da_ban: list.filter(p => p.status === 'da_ban').length,
-      dang_ve: list.filter(p => p.status === 'dang_ve').length,
+      dang_ban: list.filter(p => adminTab(p.status) === 'dang_ban').length,
+      can_xu_ly: list.filter(p => adminTab(p.status) === 'can_xu_ly').length,
+      da_ban: list.filter(p => adminTab(p.status) === 'da_ban').length,
     })
     setLoadingData(false)
   }
@@ -71,6 +97,18 @@ export default function Admin() {
   async function fetchCustomers() {
     const { data } = await supabase.from('customers').select('*').order('created_at', { ascending: false })
     setCustomers(data || [])
+  }
+
+  async function fetchStaff() {
+    const { data, error } = await supabase.from('staff').select('*').order('name')
+    if (error) { console.warn('Chưa có bảng staff (cần chạy SQL):', error.message); setStaff([]); return }
+    setStaff(data || [])
+  }
+
+  async function updateOrderStaff(orderId, staffId) {
+    const { error } = await supabase.from('orders').update({ staff_id: staffId ? Number(staffId) : null }).eq('id', orderId)
+    if (error) { alert('❌ Không thể gán nhân viên: ' + error.message); return }
+    fetchOrders()
   }
 
   async function deleteProduct(id) {
@@ -103,6 +141,40 @@ export default function Admin() {
     setSelected(product)
     const { data } = await supabase.from('product_images').select('*').eq('product_id', product.id).order('order')
     setSelectedImages(data || [])
+  }
+
+  // Hoàn tiền / trả hàng: đưa sản phẩm về còn hàng, huỷ đơn, trừ thống kê khách
+  async function refundProduct(product) {
+    const order = ordersByProduct[product.id]
+    const buyer = order?.customer_name ? ` cho ${order.customer_name}` : ''
+    if (!confirm(`Hoàn tiền / trả hàng "${product['Tên sản phẩm']}"${buyer}?\nSản phẩm sẽ trở lại "Còn hàng".`)) return
+
+    // 1. Sản phẩm về còn hàng
+    const { error: pErr } = await supabase.from('products').update({ status: 'con_hang' }).eq('id', product.id)
+    if (pErr) { alert('❌ Không thể cập nhật sản phẩm: ' + pErr.message); return }
+
+    // 2. Huỷ đơn + ghi chú hoàn tiền
+    if (order) {
+      await supabase.from('orders')
+        .update({ status: 'cancelled', note: `${order.note || ''} · ↩️ ĐÃ HOÀN TIỀN/TRẢ HÀNG` })
+        .eq('id', order.id)
+
+      // 3. Trừ thống kê khách hàng
+      if (order.customer_id) {
+        const { data: cust } = await supabase.from('customers')
+          .select('total_orders, total_spent').eq('id', order.customer_id).maybeSingle()
+        if (cust) {
+          await supabase.from('customers').update({
+            total_orders: Math.max(0, (cust.total_orders || 0) - 1),
+            total_spent: Math.max(0, (cust.total_spent || 0) - (product['Giá bán'] || 0)),
+            updated_at: new Date().toISOString()
+          }).eq('id', order.customer_id)
+        }
+      }
+    }
+
+    alert('✅ Đã hoàn tiền/trả hàng. Sản phẩm đã trở lại "Còn hàng".')
+    fetchProducts(); fetchOrders(); fetchCustomers()
   }
 
   async function updateOrderStatus(id, status) {
@@ -147,6 +219,9 @@ export default function Admin() {
         <button className={tab === 'customers' ? 'active' : ''} onClick={() => setTab('customers')}>
           👥 Khách hàng ({customers.length})
         </button>
+        <button className={tab === 'staff' ? 'active' : ''} onClick={() => setTab('staff')}>
+          🧑‍💼 Nhân viên ({staff.length})
+        </button>
       </div>
 
       <div className="admin-content">
@@ -159,20 +234,46 @@ export default function Admin() {
               <button className="btn-import-excel" onClick={() => setShowImport(true)}>
                 📥 Import Excel
               </button>
+              <input
+                className="admin-search"
+                placeholder="🔍 Tìm theo tên máy hoặc serial..."
+                value={productSearch}
+                onChange={e => setProductSearch(e.target.value)}
+              />
+            </div>
+            <div className="product-subtabs">
+              {PRODUCT_TABS.map(t => (
+                <button
+                  key={t.key}
+                  className={productTab === t.key ? 'active' : ''}
+                  onClick={() => setProductTab(t.key)}
+                >
+                  {t.label} ({stats[t.key] || 0})
+                </button>
+              ))}
             </div>
             {loadingData ? <div className="admin-loading-inline">Đang tải...</div> : (
-              <ProductTable
-                products={products}
-                onEdit={p => { setEditProduct(p); setShowForm(true) }}
-                onDelete={deleteProduct}
-                onView={openDetail}
-                onSell={setSellProduct}
-              />
+              <>
+                {q && <p className="admin-search-result">Tìm thấy {filteredProducts.length} sản phẩm cho "{productSearch}"</p>}
+                <ProductTable
+                  products={filteredProducts}
+                  ordersByProduct={ordersByProduct}
+                  onEdit={p => { setEditProduct(p); setShowForm(true) }}
+                  onDelete={deleteProduct}
+                  onView={openDetail}
+                  onSell={setSellProduct}
+                  onRefund={refundProduct}
+                  onRepair={setRepairProduct}
+                />
+              </>
             )}
           </>
         )}
         {tab === 'orders' && (
-          <OrderTable orders={orders} onUpdateStatus={updateOrderStatus} />
+          <OrderTable orders={orders} onUpdateStatus={updateOrderStatus} staff={staff} onAssignStaff={updateOrderStaff} />
+        )}
+        {tab === 'staff' && (
+          <StaffPanel staff={staff} onChanged={fetchStaff} />
         )}
         {tab === 'customers' && (
           <>
@@ -212,9 +313,13 @@ export default function Admin() {
         <SellModal
           product={sellProduct}
           customers={customers}
+          staff={staff}
           onClose={() => setSellProduct(null)}
           onSold={() => { fetchProducts(); fetchOrders(); fetchCustomers() }}
         />
+      )}
+      {repairProduct && (
+        <RepairModal product={repairProduct} onClose={() => setRepairProduct(null)} />
       )}
     </div>
   )
