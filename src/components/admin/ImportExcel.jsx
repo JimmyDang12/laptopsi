@@ -4,18 +4,23 @@ import { supabase } from '../../lib/supabase'
 import { normalizeStatus, statusLabel } from '../../lib/productStatus'
 import './ImportExcel.css'
 
-const COLUMN_MAP = {
-  'Tên sản phẩm': 'Tên sản phẩm',
-  'Giá bán': 'Giá bán',
-  'Serial': 'Serial',
-  'Màu': 'Màu',
-  'Tình trạng pin': 'Tình trạng pin',
-  'Ghi chú': 'Ghi chú',
-  'Ngoại hình': 'Ngoại hình',
-  'Cấu hình': 'cấu hình',
-  'cấu hình': 'cấu hình',
-  'image_url': 'image_url',
-  'status': 'status',
+// Chuẩn hoá tên cột để khớp linh hoạt (bỏ dấu, hoa->thường, đ->d)
+function normHeader(s) {
+  return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/đ/g, 'd').trim().replace(/\s+/g, ' ')
+}
+
+// Mỗi cột DB nhận nhiều tên cột Excel khác nhau (đã chuẩn hoá)
+const FIELD_ALIASES = {
+  'Tên sản phẩm': ['ten san pham', 'san pham', 'ten may', 'ten', 'name', 'product'],
+  'Giá bán': ['gia ban', 'gia', 'price'],
+  'Serial': ['serial', 'sn', 'so serial'],
+  'Màu': ['mau', 'mau sac', 'color'],
+  'Tình trạng pin': ['tinh trang pin', 'pin', 'battery'],
+  'Ghi chú': ['ghi chu', 'note', 'notes'],
+  'Ngoại hình': ['ngoai hinh', 'hinh thuc'],
+  'cấu hình': ['cau hinh', 'config', 'configuration'],
+  'image_url': ['image_url', 'image', 'anh', 'hinh anh', 'url'],
+  'status': ['status', 'trang thai', 'tinh trang may'],
 }
 
 export default function ImportExcel({ onClose, onImported }) {
@@ -33,12 +38,18 @@ export default function ImportExcel({ onClose, onImported }) {
       const wb = XLSX.read(evt.target.result, { type: 'binary' })
       const ws = wb.Sheets[wb.SheetNames[0]]
       const data = XLSX.utils.sheet_to_json(ws, { defval: '' })
-      // Map cột
+      // Map cột — khớp tên cột linh hoạt (không phân biệt hoa thường/dấu)
       const mapped = data.map(row => {
-        const product = { status: 'con_hang' }
-        for (const [excelCol, dbCol] of Object.entries(COLUMN_MAP)) {
-          if (row[excelCol] !== undefined) {
-            product[dbCol] = row[excelCol]
+        // Lập bảng tra theo tên cột đã chuẩn hoá
+        const normRow = {}
+        for (const key of Object.keys(row)) {
+          const v = row[key]
+          if (v !== undefined && v !== '') normRow[normHeader(key)] = v
+        }
+        const product = {}
+        for (const [dbCol, aliases] of Object.entries(FIELD_ALIASES)) {
+          for (const alias of aliases) {
+            if (normRow[alias] !== undefined) { product[dbCol] = normRow[alias]; break }
           }
         }
         if (product['Giá bán']) product['Giá bán'] = Number(String(product['Giá bán']).replace(/[^0-9]/g, '')) || null
