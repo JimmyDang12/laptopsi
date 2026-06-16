@@ -62,3 +62,20 @@ export function isSellable(status) {
 export function isCustomerVisible(status) {
   return status !== 'da_ban' && !PROCESSING.has(status)
 }
+
+// Chuẩn hoá giá trị trạng thái từ file Excel (chấp nhận cả nhãn tiếng Việt, không dấu, hoa/thường)
+const STATUS_ALIASES = {
+  'con hang': 'con_hang', 'conhang': 'con_hang',
+  'nguyen trang': 'nguyen_trang', 'nguyentrang': 'nguyen_trang', 'nguyen ban': 'nguyen_trang',
+  'cho xu ly': 'cho_xu_ly', 'choxuly': 'cho_xu_ly',
+  'dang spa': 'dang_spa', 'spa': 'dang_spa',
+  'dang sua': 'dang_sua', 'sua': 'dang_sua', 'dang sua chua': 'dang_sua',
+  'da ban': 'da_ban', 'daban': 'da_ban',
+  'dang ve': 'cho_xu_ly', 'dangve': 'cho_xu_ly',
+}
+export function normalizeStatus(input) {
+  if (!input) return 'con_hang'
+  const raw = String(input).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\u0111/g, 'd').trim().replace(/\s+/g, ' ')
+  if (STATUS_LABELS[raw]) return raw // đã là key hợp lệ (con_hang, nguyen_trang...)
+  return STATUS_ALIASES[raw] || 'con_hang'
+}

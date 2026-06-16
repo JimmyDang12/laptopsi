@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import * as XLSX from 'xlsx'
 import { supabase } from '../../lib/supabase'
+import { normalizeStatus, statusLabel } from '../../lib/productStatus'
 import './ImportExcel.css'
 
 const COLUMN_MAP = {
@@ -41,6 +42,8 @@ export default function ImportExcel({ onClose, onImported }) {
           }
         }
         if (product['Giá bán']) product['Giá bán'] = Number(String(product['Giá bán']).replace(/[^0-9]/g, '')) || null
+        // Chuẩn hoá trạng thái: hiểu cả nhãn tiếng Việt ("Nguyên trạng", "Đang sửa"...)
+        product.status = normalizeStatus(product.status)
         return product
       })
       setRows(mapped)
@@ -94,6 +97,10 @@ export default function ImportExcel({ onClose, onImported }) {
             📄 Tải file mẫu Excel
           </button>
 
+          <p className="import-status-help">
+            Cột <strong>status</strong> nhận: <em>Còn hàng, Nguyên trạng, Chờ xử lý, Đang spa, Đang sửa</em> (hoặc bỏ trống = Còn hàng). Để trống thì máy mặc định là "Còn hàng".
+          </p>
+
           <div className="import-upload">
             <label className="btn-choose-file">
               📁 {fileName || 'Chọn file Excel (.xlsx)'}
@@ -122,7 +129,7 @@ export default function ImportExcel({ onClose, onImported }) {
                         <td>{r['Giá bán']?.toLocaleString('vi-VN')}₫</td>
                         <td>{r['Serial']}</td>
                         <td>{r['Màu']}</td>
-                        <td>{r['status']}</td>
+                        <td>{statusLabel(r['status'])}</td>
                       </tr>
                     ))}
                   </tbody>
