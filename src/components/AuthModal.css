@@ -14,3 +14,9 @@
 .btn-submit { width: 100%; background: #378ADD; color: #fff; border: none; border-radius: 8px; padding: 12px; font-size: 15px; font-weight: 500; cursor: pointer; }
 .btn-submit:hover { background: #2a6bb5; }
 .btn-submit:disabled { background: #93c5fd; cursor: not-allowed; }
+.btn-resend { width: 100%; margin-top: 8px; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 8px; padding: 10px; font-size: 14px; font-weight: 500; cursor: pointer; }
+.btn-resend:hover { background: #e5e7eb; }
+.btn-resend:disabled { opacity: 0.6; cursor: not-allowed; }
+.forgot-link { text-align: center; color: #378ADD; font-size: 13px; margin: 12px 0 0; cursor: pointer; }
+.forgot-link:hover { text-decoration: underline; }
+.forgot-title { text-align: center; font-size: 16px; color: #0a1628; margin: 0 0 1rem; }

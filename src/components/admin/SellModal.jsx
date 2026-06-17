@@ -2,14 +2,14 @@ import { useState, useMemo } from 'react'
 import { supabase } from '../../lib/supabase'
 import './SellModal.css'
 
-export default function SellModal({ product, customers = [], staff = [], onClose, onSold }) {
+export default function SellModal({ product, customers = [], staff = [], currentUserId, defaultStaffId, onClose, onSold }) {
   const [mode, setMode] = useState('existing') // 'existing' | 'new'
   const [search, setSearch] = useState('')
   const [selectedId, setSelectedId] = useState('')
   const [newCustomer, setNewCustomer] = useState({ name: '', phone: '', email: '', address: '' })
   const [note, setNote] = useState('')
   const [salePrice, setSalePrice] = useState(product?.['Giá bán'] ?? '')
-  const [staffId, setStaffId] = useState('')
+  const [staffId, setStaffId] = useState(defaultStaffId ? String(defaultStaffId) : '')
   const [loading, setLoading] = useState(false)
 
   const price = salePrice === '' ? 0 : Number(salePrice)
@@ -45,6 +45,7 @@ export default function SellModal({ product, customers = [], staff = [], onClose
             phone: newCustomer.phone,
             email: newCustomer.email || null,
             address: newCustomer.address || null,
+            created_by: currentUserId || null,
             created_at: now,
             updated_at: now
           }])
@@ -67,6 +68,9 @@ export default function SellModal({ product, customers = [], staff = [], onClose
         customer_phone: customer.phone,
         note: `Bán trực tiếp · ${formatPrice(price)}${note ? ' · ' + note : ''}`,
         status: 'pending',
+        order_type: 'ban_truc_tiep',
+        sale_price: price || null,
+        created_by: currentUserId || null,
         created_at: now
       }
       if (staffId) orderPayload.staff_id = Number(staffId)

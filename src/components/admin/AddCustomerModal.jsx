@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import './AddCustomerModal.css'
 
-export default function AddCustomerModal({ onClose, onCustomerAdded }) {
+export default function AddCustomerModal({ onClose, onCustomerAdded, currentUserId }) {
   const [form, setForm] = useState({ name: '', phone: '', email: '', address: '', note: '' })
   const [loading, setLoading] = useState(false)
 
@@ -23,6 +23,7 @@ export default function AddCustomerModal({ onClose, onCustomerAdded }) {
         email: form.email || null,
         address: form.address || null,
         note: form.note || null,
+        created_by: currentUserId || null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       }])

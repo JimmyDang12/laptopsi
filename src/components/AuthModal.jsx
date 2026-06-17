@@ -8,17 +8,38 @@ export default function AuthModal({ onClose }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [canResend, setCanResend] = useState(false)
 
   const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value })
-  const switchMode = m => { setMode(m); setError(''); setSuccess('') }
+  const switchMode = m => { setMode(m); setError(''); setSuccess(''); setCanResend(false) }
+
+  async function resendConfirm() {
+    if (!form.email) { setError('Nhập email trước đã'); return }
+    setLoading(true); setError(''); setSuccess('')
+    const { error } = await supabase.auth.resend({ type: 'signup', email: form.email })
+    if (error) setError('Không gửi lại được: ' + error.message)
+    else setSuccess('Đã gửi lại email xác nhận. Kiểm tra hộp thư (cả mục Spam).')
+    setLoading(false)
+  }
 
   async function handleSubmit(e) {
-    e.preventDefault(); setLoading(true); setError(''); setSuccess('')
+    e.preventDefault(); setLoading(true); setError(''); setSuccess(''); setCanResend(false)
+
+    if (mode === 'forgot') {
+      if (!form.email) { setError('Vui lòng nhập email'); setLoading(false); return }
+      const { error } = await supabase.auth.resetPasswordForEmail(form.email, { redirectTo: window.location.origin })
+      if (error) setError('Không gửi được: ' + error.message)
+      else setSuccess('Đã gửi link đặt lại mật khẩu tới email. Kiểm tra hộp thư (cả mục Spam).')
+      setLoading(false)
+      return
+    }
 
     if (mode === 'login') {
       const { error } = await supabase.auth.signInWithPassword({ email: form.email, password: form.password })
-      if (error) setError('Email hoặc mật khẩu không đúng')
-      else onClose()
+      if (error) {
+        setError('Sai email/mật khẩu, HOẶC tài khoản chưa xác thực email. Nếu chắc chắn đúng mật khẩu, hãy mở email bấm link xác nhận (hoặc gửi lại bên dưới).')
+        setCanResend(true)
+      } else onClose()
       setLoading(false)
       return
     }
@@ -30,7 +51,7 @@ export default function AuthModal({ onClose }) {
       return
     }
 
-    const { error } = await supabase.auth.signUp({
+    const { data: signUpData, error } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
       options: { data: { full_name: form.name, phone: form.phone, address: form.address } }
@@ -57,6 +78,7 @@ export default function AuthModal({ onClose }) {
           phone: form.phone,
           email: form.email || null,
           address: form.address || null,
+          created_by: signUpData?.user?.id || null,
           created_at: now,
           updated_at: now
         }])
@@ -74,10 +96,13 @@ export default function AuthModal({ onClose }) {
       <div className="modal-box" onClick={e => e.stopPropagation()}>
         <button className="modal-close" onClick={onClose}>✕</button>
         <div className="modal-logo"><span>💻</span><span>Smartlaptop Store</span></div>
-        <div className="modal-tabs">
-          <button className={mode === 'login' ? 'active' : ''} onClick={() => switchMode('login')}>Đăng nhập</button>
-          <button className={mode === 'register' ? 'active' : ''} onClick={() => switchMode('register')}>Đăng ký</button>
-        </div>
+        {mode !== 'forgot' && (
+          <div className="modal-tabs">
+            <button className={mode === 'login' ? 'active' : ''} onClick={() => switchMode('login')}>Đăng nhập</button>
+            <button className={mode === 'register' ? 'active' : ''} onClick={() => switchMode('register')}>Đăng ký</button>
+          </div>
+        )}
+        {mode === 'forgot' && <h3 className="forgot-title">🔑 Quên mật khẩu</h3>}
         <form onSubmit={handleSubmit}>
           {mode === 'register' && (
             <>
@@ -87,10 +112,25 @@ export default function AuthModal({ onClose }) {
             </>
           )}
           <div className="form-group"><label>Email</label><input name="email" type="email" placeholder="email@example.com" value={form.email} onChange={handleChange} required /></div>
-          <div className="form-group"><label>Mật khẩu</label><input name="password" type="password" placeholder="••••••••" value={form.password} onChange={handleChange} required minLength={6} /></div>
+          {mode !== 'forgot' && (
+            <div className="form-group"><label>Mật khẩu</label><input name="password" type="password" placeholder="••••••••" value={form.password} onChange={handleChange} required minLength={6} /></div>
+          )}
           {error && <p className="form-error">{error}</p>}
           {success && <p className="form-success">{success}</p>}
-          <button type="submit" className="btn-submit" disabled={loading}>{loading ? 'Đang xử lý...' : mode === 'login' ? 'Đăng nhập' : 'Đăng ký'}</button>
+          <button type="submit" className="btn-submit" disabled={loading}>
+            {loading ? 'Đang xử lý...' : mode === 'login' ? 'Đăng nhập' : mode === 'register' ? 'Đăng ký' : 'Gửi link đặt lại mật khẩu'}
+          </button>
+          {mode === 'login' && canResend && (
+            <button type="button" className="btn-resend" onClick={resendConfirm} disabled={loading}>
+              ✉️ Gửi lại email xác nhận
+            </button>
+          )}
+          {mode === 'login' && (
+            <p className="forgot-link" onClick={() => switchMode('forgot')}>Quên mật khẩu?</p>
+          )}
+          {mode === 'forgot' && (
+            <p className="forgot-link" onClick={() => switchMode('login')}>← Quay lại đăng nhập</p>
+          )}
         </form>
       </div>
     </div>

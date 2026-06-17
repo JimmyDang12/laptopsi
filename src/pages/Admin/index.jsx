@@ -19,7 +19,7 @@ import { adminTab, PRODUCT_TABS } from '../../lib/productStatus'
 import './Admin.css'
 
 export default function Admin() {
-  const { user, isAdmin, loading } = useAuth()
+  const { user, isOwner, staffProfile, perms, canAccessAdmin, loading } = useAuth()
   const [tab, setTab] = useState('products')
   const [products, setProducts] = useState([])
   const [orders, setOrders] = useState([])
@@ -49,6 +49,11 @@ export default function Admin() {
       (p['Serial'] || '').toLowerCase().includes(q)
   })
 
+  // Lọc đơn hàng / khách hàng theo quyền sở hữu (nhân viên chỉ thấy của mình nếu không có quyền *_all)
+  const ownsOrder = o => o.created_by === user?.id || (staffProfile && o.staff_id === staffProfile.id)
+  const visibleOrders = perms.orders_all ? orders : orders.filter(ownsOrder)
+  const visibleCustomers = perms.customers_all ? customers : customers.filter(c => c.created_by === user?.id)
+
   // Map sản phẩm -> người mua (ưu tiên đơn đã xác nhận gần nhất)
   const ordersByProduct = {}
   for (const o of orders) {
@@ -59,13 +64,28 @@ export default function Admin() {
     }
   }
 
+  // Các tab được phép theo quyền
+  const availableTabs = [
+    perms.products && 'products',
+    perms.orders && 'orders',
+    perms.customers && 'customers',
+    perms.staff && 'staff',
+  ].filter(Boolean)
+
+  // Nếu tab hiện tại không được phép, chuyển về tab đầu tiên khả dụng
   useEffect(() => {
-    if (isAdmin) { fetchProducts(); fetchOrders(); fetchCustomers(); fetchStaff() }
-  }, [isAdmin])
+    if (availableTabs.length && !availableTabs.includes(tab)) {
+      setTab(availableTabs[0])
+    }
+  }, [perms]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (canAccessAdmin) { fetchProducts(); fetchOrders(); fetchCustomers(); fetchStaff() }
+  }, [canAccessAdmin])
 
   // Lắng nghe đơn hàng mới theo thời gian thực để cập nhật thông báo
   useEffect(() => {
-    if (!isAdmin) return
+    if (!canAccessAdmin) return
     const channel = supabase
       .channel('orders-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
@@ -73,7 +93,7 @@ export default function Admin() {
       })
       .subscribe()
     return () => { supabase.removeChannel(channel) }
-  }, [isAdmin])
+  }, [canAccessAdmin])
 
   async function fetchProducts() {
     setLoadingData(true)
@@ -183,10 +203,10 @@ export default function Admin() {
   }
 
   if (loading) return <div className="admin-loading"><div className="spinner"></div></div>
-  if (!user || !isAdmin) return (
+  if (!user || !canAccessAdmin) return (
     <div className="admin-denied">
       <h2>🔒 Không có quyền truy cập</h2>
-      <p>Trang này chỉ dành cho Admin.</p>
+      <p>Trang này chỉ dành cho Admin / nhân viên được cấp quyền.</p>
       <a href="/">← Về trang chủ</a>
     </div>
   )
@@ -202,7 +222,7 @@ export default function Admin() {
           </div>
         </div>
         <div className="admin-header-right">
-          <NotificationBell orders={orders} onOpenOrders={() => setTab('orders')} />
+          {perms.orders && <NotificationBell orders={visibleOrders} onOpenOrders={() => setTab('orders')} />}
           <a href="/" className="btn-view-site">← Xem trang web</a>
         </div>
       </div>
@@ -210,22 +230,30 @@ export default function Admin() {
       <StatsBar stats={stats} />
 
       <div className="admin-tabs">
-        <button className={tab === 'products' ? 'active' : ''} onClick={() => setTab('products')}>
-          📦 Sản phẩm ({stats.total})
-        </button>
-        <button className={tab === 'orders' ? 'active' : ''} onClick={() => setTab('orders')}>
-          🛒 Đơn hàng ({orders.length})
-        </button>
-        <button className={tab === 'customers' ? 'active' : ''} onClick={() => setTab('customers')}>
-          👥 Khách hàng ({customers.length})
-        </button>
-        <button className={tab === 'staff' ? 'active' : ''} onClick={() => setTab('staff')}>
-          🧑‍💼 Nhân viên ({staff.length})
-        </button>
+        {perms.products && (
+          <button className={tab === 'products' ? 'active' : ''} onClick={() => setTab('products')}>
+            📦 Sản phẩm ({stats.total})
+          </button>
+        )}
+        {perms.orders && (
+          <button className={tab === 'orders' ? 'active' : ''} onClick={() => setTab('orders')}>
+            🛒 Đơn hàng ({visibleOrders.length})
+          </button>
+        )}
+        {perms.customers && (
+          <button className={tab === 'customers' ? 'active' : ''} onClick={() => setTab('customers')}>
+            👥 Khách hàng ({visibleCustomers.length})
+          </button>
+        )}
+        {perms.staff && (
+          <button className={tab === 'staff' ? 'active' : ''} onClick={() => setTab('staff')}>
+            🧑‍💼 Nhân viên ({staff.length})
+          </button>
+        )}
       </div>
 
       <div className="admin-content">
-        {tab === 'products' && (
+        {tab === 'products' && perms.products && (
           <>
             <div className="admin-toolbar">
               <button className="btn-add" onClick={() => { setEditProduct(null); setShowForm(true) }}>
@@ -269,20 +297,20 @@ export default function Admin() {
             )}
           </>
         )}
-        {tab === 'orders' && (
-          <OrderTable orders={orders} onUpdateStatus={updateOrderStatus} staff={staff} onAssignStaff={updateOrderStaff} />
+        {tab === 'orders' && perms.orders && (
+          <OrderTable orders={visibleOrders} onUpdateStatus={updateOrderStatus} staff={staff} onAssignStaff={updateOrderStaff} />
         )}
-        {tab === 'staff' && (
+        {tab === 'staff' && perms.staff && (
           <StaffPanel staff={staff} onChanged={fetchStaff} />
         )}
-        {tab === 'customers' && (
+        {tab === 'customers' && perms.customers && (
           <>
             <div className="admin-toolbar">
               <button className="btn-add" onClick={() => setShowAddCustomer(true)}>
                 + Thêm khách hàng
               </button>
             </div>
-            <CustomerTable customers={customers} onViewCustomer={setSelectedCustomer} />
+            <CustomerTable customers={visibleCustomers} onViewCustomer={setSelectedCustomer} />
           </>
         )}
       </div>
@@ -305,6 +333,7 @@ export default function Admin() {
       {selectedCustomer && <CustomerDetail customer={selectedCustomer} onClose={() => setSelectedCustomer(null)} onCustomerUpdated={fetchCustomers} />}
       {showAddCustomer && (
         <AddCustomerModal
+          currentUserId={user?.id}
           onClose={() => setShowAddCustomer(false)}
           onCustomerAdded={fetchCustomers}
         />
@@ -312,8 +341,10 @@ export default function Admin() {
       {sellProduct && (
         <SellModal
           product={sellProduct}
-          customers={customers}
+          customers={visibleCustomers}
           staff={staff}
+          currentUserId={user?.id}
+          defaultStaffId={staffProfile?.id}
           onClose={() => setSellProduct(null)}
           onSold={() => { fetchProducts(); fetchOrders(); fetchCustomers() }}
         />

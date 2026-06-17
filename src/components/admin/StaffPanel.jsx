@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { supabase } from '../../lib/supabase'
+import { DEFAULT_PERMISSIONS } from '../../lib/permissions'
+import PermissionModal from './PermissionModal'
 import './StaffPanel.css'
 
 // Client phụ để đăng ký tài khoản nhân viên mà KHÔNG ảnh hưởng phiên đăng nhập của admin
@@ -13,6 +15,7 @@ const signupClient = createClient(
 export default function StaffPanel({ staff = [], onChanged }) {
   const [form, setForm] = useState({ name: '', phone: '', email: '', password: '' })
   const [saving, setSaving] = useState(false)
+  const [permStaff, setPermStaff] = useState(null)
 
   const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value })
 
@@ -41,23 +44,15 @@ export default function StaffPanel({ staff = [], onChanged }) {
         })
         if (signErr) throw signErr
         userId = signUp?.user?.id || null
-
-        // 2. Cấp quyền truy cập trang quản lý (thêm vào admin_users)
-        if (userId) {
-          const { error: adminErr } = await supabase.from('admin_users').insert([{ user_id: userId }])
-          if (adminErr) {
-            console.error('Lỗi cấp quyền admin:', adminErr)
-            alert('⚠️ Đã tạo tài khoản nhưng KHÔNG cấp được quyền truy cập trang quản lý: ' + adminErr.message + '\n(Bạn cần đăng nhập bằng tài khoản admin để cấp quyền cho nhân viên.)')
-          }
-        }
       }
 
-      // 3. Lưu bản ghi nhân viên (liên kết tài khoản qua user_id + email)
+      // Lưu bản ghi nhân viên (liên kết tài khoản qua user_id + email, kèm quyền mặc định)
       const { data, error } = await supabase.from('staff').insert([{
         name: form.name.trim(),
         phone: form.phone.trim() || null,
         email: form.email.trim() || null,
         user_id: userId,
+        permissions: DEFAULT_PERMISSIONS,
         created_at: new Date().toISOString()
       }]).select()
       if (error) throw error
@@ -83,6 +78,14 @@ export default function StaffPanel({ staff = [], onChanged }) {
     const { error } = await supabase.from('staff').update({ name: name.trim(), phone: phone.trim() || null }).eq('id', s.id)
     if (error) { alert('❌ ' + error.message); return }
     if (onChanged) onChanged()
+  }
+
+  async function sendResetLink(s) {
+    if (!s.email) { alert('⚠️ Nhân viên này chưa có email/tài khoản.'); return }
+    if (!confirm(`Gửi link đặt lại mật khẩu tới ${s.email}?`)) return
+    const { error } = await supabase.auth.resetPasswordForEmail(s.email, { redirectTo: window.location.origin })
+    if (error) { alert('❌ ' + error.message); return }
+    alert(`✅ Đã gửi link đặt lại mật khẩu tới ${s.email}. Nhân viên mở email để đổi mật khẩu.`)
   }
 
   async function deleteStaff(s) {
@@ -126,7 +129,7 @@ export default function StaffPanel({ staff = [], onChanged }) {
                 <th>Tên nhân viên</th>
                 <th>Số điện thoại</th>
                 <th>Tài khoản</th>
-                <th style={{ width: '140px' }}>Thao tác</th>
+                <th style={{ width: '300px' }}>Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -138,6 +141,8 @@ export default function StaffPanel({ staff = [], onChanged }) {
                   <td>{s.user_id ? <span className="staff-acc yes">🔑 {s.email || 'Có tài khoản'}</span> : <span className="staff-acc no">—</span>}</td>
                   <td>
                     <div className="staff-actions">
+                      <button className="btn-perm" onClick={() => setPermStaff(s)}>🔐 Quyền</button>
+                      {s.email && <button className="btn-reset" onClick={() => sendResetLink(s)}>✉️ Đặt lại MK</button>}
                       <button className="btn-edit" onClick={() => editStaff(s)}>✏️ Sửa</button>
                       <button className="btn-delete" onClick={() => deleteStaff(s)}>🗑️ Xoá</button>
                     </div>
@@ -147,6 +152,10 @@ export default function StaffPanel({ staff = [], onChanged }) {
             </tbody>
           </table>
         </div>
+      )}
+
+      {permStaff && (
+        <PermissionModal staff={permStaff} onClose={() => setPermStaff(null)} onSaved={onChanged} />
       )}
     </div>
   )

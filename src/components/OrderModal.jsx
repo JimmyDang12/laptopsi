@@ -53,6 +53,7 @@ export default function OrderModal({ product, onClose }) {
             phone: userPhone,
             name: userName,
             email: user.email,
+            created_by: user.id,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           }])
@@ -107,7 +108,9 @@ export default function OrderModal({ product, onClose }) {
         customer_phone: userPhone,
         customer_id: customerId,
         note: `Địa chỉ: ${form.address}${form.note ? '\n' + form.note : ''}`,
-        status: 'pending'
+        status: 'pending',
+        order_type: 'khach_dat',
+        created_by: user.id
       }
 
       const { error: orderError } = await supabase.from('orders').insert([payload])
