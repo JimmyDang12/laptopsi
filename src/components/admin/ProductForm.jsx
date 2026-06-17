@@ -1,9 +1,16 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { PRODUCT_STATUSES, statusLabel } from '../../lib/productStatus'
 import './ProductForm.css'
 
 const EMPTY = { 'Tên sản phẩm': '', 'cấu hình': '', 'Giá bán': '', 'Serial': '', 'Màu': '', 'Tình trạng pin': '', 'Ngoại hình': '', 'Ghi chú': '', status: 'con_hang', image_url: '', allow_order: true }
+
+// Lấy đường dẫn file trong bucket từ public URL để xoá khỏi storage
+function storagePathFromUrl(url) {
+  const marker = '/product-images/'
+  const i = (url || '').indexOf(marker)
+  return i >= 0 ? url.slice(i + marker.length) : null
+}
 
 export default function ProductForm({ product, onClose, onSaved }) {
   const [form, setForm] = useState(product ? { ...product, 'Giá bán': product['Giá bán'] || '' } : { ...EMPTY })
@@ -11,11 +18,45 @@ export default function ProductForm({ product, onClose, onSaved }) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [extraImages, setExtraImages] = useState([])
+  const [savedImages, setSavedImages] = useState([]) // ảnh phụ đã lưu (product_images)
 
   const isEdit = !!product
 
+  // Nạp ảnh phụ đã lưu khi sửa sản phẩm
+  useEffect(() => {
+    if (product?.id) {
+      supabase.from('product_images').select('*').eq('product_id', product.id).order('order')
+        .then(({ data }) => setSavedImages(data || []))
+    }
+  }, [product?.id])
+
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value })
+  }
+
+  async function deleteStorageFile(url) {
+    const path = storagePathFromUrl(url)
+    if (path) await supabase.storage.from('product-images').remove([path])
+  }
+
+  // Xoá ảnh phụ đã lưu (khỏi DB + storage)
+  async function deleteSavedImage(img) {
+    if (!confirm('Xoá ảnh này?')) return
+    await supabase.from('product_images').delete().eq('id', img.id)
+    await deleteStorageFile(img.image_url)
+    setSavedImages(prev => prev.filter(x => x.id !== img.id))
+  }
+
+  // Xoá ảnh chính
+  async function deleteMainImage() {
+    if (!confirm('Xoá ảnh chính?')) return
+    await deleteStorageFile(form.image_url)
+    setForm(f => ({ ...f, image_url: '' }))
+  }
+
+  // Đặt một ảnh làm ảnh chính
+  function setAsMain(url) {
+    setForm(f => ({ ...f, image_url: url }))
   }
 
   async function handleUpload(e) {
@@ -42,7 +83,8 @@ export default function ProductForm({ product, onClose, onSaved }) {
     setUploading(false)
   }
 
-  function removeExtraImage(url) {
+  async function removeExtraImage(url) {
+    await deleteStorageFile(url)
     setExtraImages(prev => prev.filter(u => u !== url))
   }
 
@@ -61,9 +103,11 @@ export default function ProductForm({ product, onClose, onSaved }) {
       productId = data.id
     }
 
-    // Lưu ảnh phụ vào product_images
-    if (extraImages.length > 0) {
-      const imageRows = extraImages.map((url, i) => ({ product_id: productId, image_url: url, order: i + 1 }))
+    // Lưu ảnh phụ mới vào product_images (bỏ ảnh đã đặt làm ảnh chính)
+    const toSave = extraImages.filter(u => u !== form.image_url)
+    if (toSave.length > 0) {
+      const base = savedImages.length
+      const imageRows = toSave.map((url, i) => ({ product_id: productId, image_url: url, order: base + i + 1 }))
       await supabase.from('product_images').insert(imageRows)
     }
 
@@ -71,7 +115,12 @@ export default function ProductForm({ product, onClose, onSaved }) {
     onSaved()
   }
 
-  const allPreviews = [form.image_url, ...extraImages].filter(Boolean)
+  // Danh sách ảnh để hiển thị: ảnh chính + ảnh phụ đã lưu + ảnh mới upload
+  const previews = [
+    ...(form.image_url ? [{ url: form.image_url, kind: 'main' }] : []),
+    ...savedImages.filter(img => img.image_url !== form.image_url).map(img => ({ url: img.image_url, kind: 'saved', row: img })),
+    ...extraImages.filter(u => u !== form.image_url).map(url => ({ url, kind: 'new' })),
+  ]
 
   return (
     <div className="form-overlay" onClick={onClose}>
@@ -88,13 +137,20 @@ export default function ProductForm({ product, onClose, onSaved }) {
               {uploading ? '⏳ Đang upload...' : '📁 Chọn ảnh (có thể chọn nhiều)'}
               <input type="file" accept="image/*" multiple onChange={handleUpload} disabled={uploading} style={{ display: 'none' }} />
             </label>
-            {allPreviews.length > 0 && (
+            {previews.length > 0 && (
               <div className="preview-list">
-                {allPreviews.map((url, i) => (
-                  <div key={url} className="preview-item">
-                    <img src={url} alt="" />
-                    {i === 0 && <span className="preview-main">Ảnh chính</span>}
-                    {i > 0 && <button type="button" className="preview-remove" onClick={() => removeExtraImage(url)}>✕</button>}
+                {previews.map((p) => (
+                  <div key={p.url} className="preview-item">
+                    <img src={p.url} alt="" />
+                    {p.kind === 'main'
+                      ? <span className="preview-main">Ảnh chính</span>
+                      : <button type="button" className="preview-setmain" title="Đặt làm ảnh chính" onClick={() => setAsMain(p.url)}>★</button>}
+                    <button
+                      type="button"
+                      className="preview-remove"
+                      title="Xoá ảnh"
+                      onClick={() => p.kind === 'main' ? deleteMainImage() : p.kind === 'saved' ? deleteSavedImage(p.row) : removeExtraImage(p.url)}
+                    >✕</button>
                   </div>
                 ))}
               </div>
