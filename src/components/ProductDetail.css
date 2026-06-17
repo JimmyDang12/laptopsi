@@ -12,6 +12,16 @@
 .gallery-nav.prev { left: 10px; }
 .gallery-nav.next { right: 10px; }
 .gallery-counter { position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.4); color: #fff; border-radius: 6px; padding: 4px 8px; font-size: 13px; }
+.gallery-dl-one { position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.45); color: #fff; border: none; border-radius: 6px; width: 34px; height: 30px; font-size: 15px; cursor: pointer; z-index: 2; }
+.gallery-dl-one:hover { background: rgba(0,0,0,0.7); }
+.gallery-download { display: flex; gap: 8px; padding: 0 10px 10px; flex-wrap: wrap; }
+.btn-dl { flex: 1; min-width: 120px; background: #f0f7ff; color: #378ADD; border: 1px solid #cfe3fb; border-radius: 8px; padding: 9px 12px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.btn-dl:hover { background: #dbeafe; }
+.btn-dl.all { background: #378ADD; color: #fff; border-color: #378ADD; }
+.btn-dl.all:hover { background: #2a6bb5; }
+.btn-dl:disabled { opacity: 0.6; cursor: not-allowed; }
+.zoom-dl { position: absolute; top: 1rem; right: 4rem; background: rgba(255,255,255,0.2); color: #fff; border: none; border-radius: 50%; width: 36px; height: 36px; font-size: 16px; cursor: pointer; }
+.zoom-dl:hover { background: rgba(255,255,255,0.35); }
 .gallery-thumbs { display: flex; gap: 6px; padding: 10px; overflow-x: auto; }
 .gallery-thumbs img { width: 60px; height: 60px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 2px solid transparent; flex-shrink: 0; }
 .gallery-thumbs img.active { border-color: #378ADD; }
