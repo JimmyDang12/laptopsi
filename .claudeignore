@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Environment (nhạy cảm, không cần đọc)
+.env
+.env.local
+
+# CSS files (Claude không cần đọc CSS khi làm logic)
+**/*.css
+
+# Static assets
+public/
+src/assets/
+
+# Config files ít thay đổi
+package-lock.json
+setup_admin.sh
+setup_laptopsi.sh

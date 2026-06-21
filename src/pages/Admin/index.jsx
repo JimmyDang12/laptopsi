@@ -43,10 +43,19 @@ export default function Admin() {
   // Lọc sản phẩm theo nhóm tab + tìm theo tên/serial
   const q = productSearch.trim().toLowerCase()
   const filteredProducts = products.filter(p => {
-    if (adminTab(p.status) !== productTab) return false
-    if (!q) return true
-    return (p['Tên sản phẩm'] || '').toLowerCase().includes(q) ||
-      (p['Serial'] || '').toLowerCase().includes(q)
+    const t = adminTab(p.status)
+    if (q) {
+      // Tìm kiếm theo nhóm để tránh rối thông tin:
+      // - Mục "đã bán" tìm riêng
+      // - Mục "còn hàng" và "chờ xử lý" tìm chung với nhau
+      const inSearchScope = productTab === 'da_ban'
+        ? t === 'da_ban'
+        : t === 'dang_ban' || t === 'can_xu_ly'
+      if (!inSearchScope) return false
+      return (p['Tên sản phẩm'] || '').toLowerCase().includes(q) ||
+        (p['Serial'] || '').toLowerCase().includes(q)
+    }
+    return t === productTab
   })
 
   // Lọc đơn hàng / khách hàng theo quyền sở hữu (nhân viên chỉ thấy của mình nếu không có quyền *_all)

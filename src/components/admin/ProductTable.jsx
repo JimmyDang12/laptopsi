@@ -12,6 +12,7 @@ export default function ProductTable({ products, onEdit, onDelete, onView, onSel
             <th>Ảnh</th>
             <th>Tên sản phẩm</th>
             <th>Cấu hình</th>
+            <th>Ghi chú</th>
             <th>Giá bán</th>
             <th>Trạng thái</th>
             <th>Thao tác</th>
@@ -33,6 +34,7 @@ export default function ProductTable({ products, onEdit, onDelete, onView, onSel
                   {p['Serial'] && <p className="table-serial">SN: {p['Serial']}</p>}
                 </td>
                 <td className="table-spec">{p['cấu hình'] || '—'}</td>
+                <td className="table-note">{p['Ghi chú'] || '—'}</td>
                 <td className="table-price">{formatPrice(p['Giá bán'])}</td>
                 <td>
                   <span className="status-dot" style={{ background: statusColor(p.status) }}>{statusLabel(p.status)}</span>
