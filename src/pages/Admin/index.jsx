@@ -163,6 +163,16 @@ export default function Admin() {
     setSelectedImages(data || [])
   }
 
+  // Mở popup chi tiết sản phẩm từ đơn hàng (dùng lại ProductDetail như ở ProductTable)
+  function openOrderProductDetail(order) {
+    const product = products.find(p => p.id === order.product_id)
+    if (!product) {
+      alert('Sản phẩm này không còn trong kho (đã xoá hoặc gỡ liên kết).')
+      return
+    }
+    openDetail(product)
+  }
+
   // Hoàn tiền / trả hàng: đưa sản phẩm về còn hàng, huỷ đơn, trừ thống kê khách
   async function refundProduct(product) {
     const order = ordersByProduct[product.id]
@@ -298,7 +308,7 @@ export default function Admin() {
           </>
         )}
         {tab === 'orders' && perms.orders && (
-          <OrderTable orders={visibleOrders} onUpdateStatus={updateOrderStatus} staff={staff} onAssignStaff={updateOrderStaff} />
+          <OrderTable orders={visibleOrders} onUpdateStatus={updateOrderStatus} staff={staff} onAssignStaff={updateOrderStaff} onViewProduct={openOrderProductDetail} />
         )}
         {tab === 'staff' && perms.staff && (
           <StaffPanel staff={staff} onChanged={fetchStaff} />
