@@ -19,7 +19,7 @@ import { adminTab, PRODUCT_TABS } from '../../lib/productStatus'
 import './Admin.css'
 
 export default function Admin() {
-  const { user, isOwner, staffProfile, perms, canAccessAdmin, loading } = useAuth()
+  const { user, staffProfile, perms, canAccessAdmin, loading } = useAuth()
   const [tab, setTab] = useState('products')
   const [products, setProducts] = useState([])
   const [orders, setOrders] = useState([])
@@ -53,15 +53,22 @@ export default function Admin() {
         : t === 'dang_ban' || t === 'can_xu_ly'
       if (!inSearchScope) return false
       return (p['Tên sản phẩm'] || '').toLowerCase().includes(q) ||
-        (p['Serial'] || '').toLowerCase().includes(q)
+        (p['Serial'] || '').toLowerCase().includes(q) ||
+        (p['cấu hình'] || '').toLowerCase().includes(q) ||
+        (p['Ghi chú'] || '').toLowerCase().includes(q)
     }
     return t === productTab
   })
 
   // Lọc đơn hàng / khách hàng theo quyền sở hữu (nhân viên chỉ thấy của mình nếu không có quyền *_all)
-  const ownsOrder = o => o.created_by === user?.id || (staffProfile && o.staff_id === staffProfile.id)
+  const ownsOrder = o => o.created_by === user?.id ||
+    (staffProfile && o.staff_id != null && String(o.staff_id) === String(staffProfile.id))
   const visibleOrders = perms.orders_all ? orders : orders.filter(ownsOrder)
-  const visibleCustomers = perms.customers_all ? customers : customers.filter(c => c.created_by === user?.id)
+  // Khách "được giao cho mình" = khách do mình tạo HOẶC khách gắn với đơn được giao cho mình
+  const myCustomerIds = new Set(orders.filter(ownsOrder).map(o => o.customer_id).filter(Boolean))
+  const visibleCustomers = perms.customers_all
+    ? customers
+    : customers.filter(c => c.created_by === user?.id || myCustomerIds.has(c.id))
 
   // Map sản phẩm -> người mua (ưu tiên đơn đã xác nhận gần nhất)
   const ordersByProduct = {}

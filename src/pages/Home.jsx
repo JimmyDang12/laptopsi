@@ -18,26 +18,20 @@ export default function Home() {
   const [selectedImages, setSelectedImages] = useState([])
   const [orderProduct, setOrderProduct] = useState(null)
   const [showAuth, setShowAuth] = useState(false)
+  const [search, setSearch] = useState('')
 
   async function fetchProducts() {
     setLoading(true)
-    const { data } = await supabase.from('products').select('*').order('created_at', { ascending: false })
+    // Khách chưa đăng nhập: dùng view products_public (không có cột Giá bán). Đã đăng nhập: bảng products.
+    const table = user ? 'products' : 'products_public'
+    const { data } = await supabase.from(table).select('*').order('created_at', { ascending: false })
     // Chỉ hiển thị máy thuộc nhóm "Đang bán" (ẩn đã bán + máy cần xử lý)
     setProducts((data || []).filter(p => isCustomerVisible(p.status)))
     setLoading(false)
   }
 
   useEffect(() => {
-    let mounted = true
-    async function init() {
-      if (user) {
-        await fetchProducts()
-      } else if (mounted) {
-        setLoading(false)
-      }
-    }
-    init()
-    return () => { mounted = false }
+    fetchProducts()
   }, [user])
 
   async function openDetail(product) {
@@ -46,20 +40,16 @@ export default function Home() {
     setSelectedImages(data || [])
   }
 
-        const filtered = products
-
-  if (!user) return (
-    <div className="gate">
-      <div className="gate-box">
-        <div className="gate-icon">🔒</div>
-        <h2>Đăng nhập để xem sản phẩm</h2>
-        <p>Hệ thống dành cho đại lý và khách quen. Vui lòng đăng nhập để tiếp tục.</p>
-        <button className="gate-btn" onClick={() => setShowAuth(true)}>Đăng nhập</button>
-        <a href="tel:0972855866" className="gate-contact">📞 Liên hệ: 0972 855 866</a>
-      </div>
-      {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
-    </div>
-  )
+  // Tìm kiếm cho khách: gộp tên/serial/cấu hình/ghi chú, không phân biệt hoa thường, khớp một phần (OR)
+  const q = search.trim().toLowerCase()
+  const filtered = q
+    ? products.filter(p =>
+        (p['Tên sản phẩm'] || '').toLowerCase().includes(q) ||
+        (p['Serial'] || '').toLowerCase().includes(q) ||
+        (p['cấu hình'] || '').toLowerCase().includes(q) ||
+        (p['Ghi chú'] || '').toLowerCase().includes(q)
+      )
+    : products
 
   return (
     <div className="home">
@@ -78,6 +68,14 @@ export default function Home() {
 
 
       <div className="products-section">
+        <div className="home-search-bar">
+          <input
+            className="home-search"
+            placeholder="🔍 Tìm laptop theo tên, serial, cấu hình..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </div>
         {loading ? <div className="loading-state">Đang tải sản phẩm...</div>
           : filtered.length === 0 ? <div className="empty-state">Không có sản phẩm nào</div>
           : <div className="products-grid">{filtered.map(p => <ProductCard key={p.id} product={p} onClick={openDetail} />)}</div>}
@@ -107,6 +105,7 @@ export default function Home() {
         setSelected(null); setOrderProduct(p)
       }} />}
       {orderProduct && <OrderModal product={orderProduct} onClose={() => setOrderProduct(null)} />}
+      {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
     </div>
   )
 }

@@ -22,6 +22,9 @@
 .filter-tabs button { background: #f3f4f6; border: none; border-radius: 7px; padding: 6px 14px; font-size: 13px; color: #6b7280; cursor: pointer; font-weight: 500; transition: all 0.15s; }
 .filter-tabs button.active { background: #378ADD; color: #fff; }
 .products-section { padding: 1.5rem; background: #f5f6f8; min-height: 300px; }
+.home-search-bar { max-width: 600px; margin: 0 auto 1.25rem; }
+.home-search { width: 100%; box-sizing: border-box; padding: 12px 16px; font-size: 15px; border: 1px solid #d1d5db; border-radius: 10px; background: #fff; outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
+.home-search:focus { border-color: #378ADD; box-shadow: 0 0 0 3px rgba(55, 138, 221, 0.15); }
 .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
 .loading-state, .empty-state { text-align: center; padding: 4rem 1rem; color: #9ca3af; font-size: 15px; }
 .contact-section { padding: 1.5rem; background: #f0f4ff; }
